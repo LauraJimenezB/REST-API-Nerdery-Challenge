@@ -11,28 +11,30 @@ generator client {
 }
 
 model Profile {
-  id       Int     @id @default(autoincrement())
-  fullname String
-  bio      String?
-  user     User    @relation(fields: [userId], references: [id])
-  userId   Int     @unique
+  id               Int     @id @default(autoincrement())
+  fullname         String  @db.VarChar(150)
+  fullnameIsPublic Boolean @default(false)
+  bio              String? @db.VarChar(200)
+  user             User    @relation(fields: [userId], references: [id])
+  userId           Int     @unique
 }
 
 model User {
-  id       Int        @id @default(autoincrement())
-  username String
-  email    String     @unique
-  role     Role       @default(USER)
-  profile  Profile?
-  posts    Post[]
-  comments Comments[]
+  id               Int        @id @default(autoincrement())
+  username         String     @db.VarChar(50)
+  email            String     @unique 
+  emailIsPublic    Boolean    @default(false)
+  role             Role       @default(USER)
+  profile          Profile?
+  posts            Post[]
+  comments         Comments[]
 }
 
 model Post {
   id        Int        @id @default(autoincrement())
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-  content   String?
+  content   String    
   likeState LikeState  @default(NULL)
   published Boolean    @default(false)
   comments  Comments[]
