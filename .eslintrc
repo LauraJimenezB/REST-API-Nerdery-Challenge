@@ -11,7 +11,7 @@
   },
   "extends": [
     "plugin:@typescript-eslint/recommended",
-    "plugin:prettier/recommended",
+    //"plugin:prettier/recommended",
     "plugin:import/typescript"
   ],
   "plugins": [
@@ -20,17 +20,6 @@
     "import"
   ],
   "rules": {
-    "@typescript-eslint/interface-name-prefix": "off",
-    "@typescript-eslint/explicit-function-return-type": "off",
-    "@typescript-eslint/explicit-module-boundary-types": "off",
-    "@typescript-eslint/no-explicit-any": "off",
-    "import/named": "error",
     //"no-console": "error",
-    "import/order": [
-      "error",
-      {
-        "groups": ["builtin", "external", "parent", "sibling", "index"],
-      }
-    ]
   }
 }
