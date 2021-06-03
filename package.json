@@ -12,11 +12,10 @@
   },
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "@prisma/client": "^2.24.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@babel/preset-typescript": "^7.13.0",
+    "@prisma/client": "^2.24.0",
     "@types/express": "^4.17.12",
     "@types/jest": "^26.0.23",
     "@typescript-eslint/eslint-plugin": "^4.26.0",
