@@ -25,7 +25,7 @@ app.post('/posts', async(req, res) => {
     data: {
       title,
       content,
-      authorId
+      author: { connect: { email: authorId } },
     }
   })
   res.send(result)
@@ -35,6 +35,22 @@ app.get('/users', async(req, res) => {
   const result = await prisma.user.findMany()
   res.send(result)
 })
+
+app.get('/posts', async(req, res) => {
+  const result = await prisma.post.findMany()
+  res.send(result)
+})
+
+app.get(`/posts/:id`, async (req, res) => {
+  const { id } = req.params
+  const post = await prisma.post.findFirst({
+    where: {
+      id: Number(id),
+    },
+  })
+  res.json(post)
+})
+
 
 export { app }
 
