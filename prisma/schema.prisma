@@ -1,45 +1,42 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+generator client {
+  provider = "prisma-client-js"
+}
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
 model Profile {
   id               Int     @id @default(autoincrement())
   fullname         String  @db.VarChar(150)
-  fullnameIsPublic Boolean @default(false)
   bio              String? @db.VarChar(200)
-  user             User    @relation(fields: [userId], references: [id])
   userId           Int     @unique
+  fullnameIsPublic Boolean @default(false)
+  user             User    @relation(fields: [userId], references: [id])
 }
 
 model User {
-  id               Int        @id @default(autoincrement())
-  username         String     @db.VarChar(50)
-  email            String     @unique 
-  emailIsPublic    Boolean    @default(false)
-  role             Role       @default(USER)
-  profile          Profile?
-  posts            Post[]
-  comments         Comments[]
+  id            Int        @id @default(autoincrement())
+  username      String     @db.VarChar(50)
+  email         String     @unique
+  role          Role       @default(USER)
+  emailIsPublic Boolean    @default(false)
+  comments      Comments[]
+  posts         Post[]
+  profile       Profile?
 }
 
 model Post {
   id        Int        @id @default(autoincrement())
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-  content   String    
-  likeState LikeState  @default(NULL)
+  content   String
   published Boolean    @default(false)
-  comments  Comments[]
-  author    User?      @relation(fields: [authorId], references: [id])
   authorId  Int?
+  likeState LikeState  @default(NULL)
+  author    User?      @relation(fields: [authorId], references: [id])
+  comments  Comments[]
 }
 
 model Comments {
@@ -47,10 +44,10 @@ model Comments {
   content   String
   likeState LikeState @default(NULL)
   published Boolean   @default(false)
-  author    User?     @relation(fields: [authorId], references: [id])
   authorId  Int?
-  post      Post?     @relation(fields: [postId], references: [id])
   postId    Int?
+  author    User?     @relation(fields: [authorId], references: [id])
+  post      Post?     @relation(fields: [postId], references: [id])
 }
 
 enum Role {

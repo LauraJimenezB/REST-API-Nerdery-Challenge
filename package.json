@@ -12,7 +12,9 @@
   },
   "author": "",
   "license": "ISC",
-  "dependencies": {},
+  "dependencies": {
+    "@prisma/client": "^2.24.0"
+  },
   "devDependencies": {
     "@babel/preset-typescript": "^7.13.0",
     "@prisma/client": "^2.24.0",
