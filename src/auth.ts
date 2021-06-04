@@ -1,8 +1,11 @@
 import { PrismaClient } from '@prisma/client';
+import express, { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { app } from './server';
 
 const prisma = new PrismaClient();
-const token = jwt.sign({ foo: 'bar' }, 'shhhh');
+
+app.use(express.json());
 
 interface User {
   id: number;
@@ -10,18 +13,53 @@ interface User {
   email: string;
 }
 
-export const newToken = (user: User): string => {
-  return jwt.sign({ id: user.id }, 'secret', {
-    expiresIn: '100d',
-  });
-};
+app.post('/signin', (req, res) => {
+  const { username, email } = req.body;
+  const user = { username, email };
+ 
+});
 
-export const verifyToken = async (token: string) => {
-  await jwt.verify(token, 'secret', (err, payload) => {
-    if (err) return err;
-    return payload;
+// jwt.sign({ user: user }, 'secret', { expiresIn: '1d' }, (err: any, token: any) => {
+//   res.json({
+//     token,
+//   });
+// });
+
+// Authorization: Bearer <token>
+// const verifyToken = (req: Request, res: Response, next: NextFunction) => {
+//   const bearerHeader = req.headers['authorization'];
+
+//   if (typeof bearerHeader !== undefined) {
+//     const bearerToken = bearerHeader?.split('')[1];
+//     req.token = bearerToken;
+//     next();
+//   } else {
+//     res.send({ status: 403 });
+//   }
+// };
+
+// export const newToken = (user: User): string => {
+//   return jwt.sign({ id: user.id }, 'secret', {
+//     expiresIn: '1d',
+//   });
+// };
+
+// export const verifyToken = async (token: string) => {
+//   await jwt.verify(token, 'secret', (err, payload) => {
+//     if (err) return err;
+//     return payload;
+//   });
+// };
+
+app.post('/signin', (req, res) => {
+  const { username, email } = req.body
+  const user = { username, email }
+  jwt.sign({ user: user}, 'secret', (err: any, token: any) => {
+    res.json({
+      token
+    })
   });
-};
+})
 
 // console.log(
 //   newToken({
@@ -30,6 +68,3 @@ export const verifyToken = async (token: string) => {
 //     email: 'prueba@test.com',
 //   }),
 // );
-
-verifyToken('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjIyNzYzODA1LCJleHAiOjE2MzE0MDM4MDV9.DYR1je203pvPd39uWtWFWvzfMqc2j5oYHDax5442G38')
-.then( data => console.log(data))
