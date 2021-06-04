@@ -1,5 +1,11 @@
 import { Prisma, PrismaClient } from '@prisma/client';
 import express from 'express';
+import {
+  validateUser,
+  validatePost,
+  validateComment,
+  notFound
+} from './helpers/route_validators'
 
 const prisma = new PrismaClient();
 const app = express();
@@ -7,191 +13,313 @@ const app = express();
 app.use(express.json());
 
 app.post('/signup', async (req, res) => {
-  const { username, email } = req.body;
-
+  const { username, email, password } = req.body;
   const result = await prisma.user.create({
     data: {
       username,
       email,
+      password
     },
   });
   res.send(result);
 });
 
+
 app.route('/users')
   .get(async (req, res) => {
-    const result = await prisma.user.findMany();
-    res.send(result);
+    const users = await prisma.user.findMany();
+    res.send(users);
   });
 
-app.route('/users/:id')
+
+app.route('/users/:userId')
   .get(async (req, res) => {
-    const { id } = req.params
+    const { userId } = req.params
     const user = await prisma.user.findUnique({
       where: {
-        id: Number(id),
+        id: Number(userId),
       }
     })
-    res.json(user)
+    if(user) {
+      res.json(user)
+    } else {
+      res.json({ error: notFound('User', userId) })
+    }
   })
   .patch(async (req, res) => {
-    const { id } = req.params
-    const { fullname, bio, emailIsPublic, fullnameIsPublic } = req.body;
-    try{
-    const user = await prisma.user.update({
-      where: {
-        id: Number(id),
-      },
-      data: {
-        emailIsPublic: emailIsPublic,
-        fullnameIsPublic: fullnameIsPublic,
-        fullname:fullname,
-        bio: bio
-      }
-    })
-    res.json(user)
-    } catch (error) {
-      res.json({ error: `Profile with ID ${id} does not exist in the database` })
+    const { userId } = req.params
+    const { fullname, bio, emailIsPublic, fullnameIsPublic } = req.body
+    const userExists = await validateUser(userId)
+    if(userExists) {
+      const user = await prisma.user.update({
+        where: {
+          id: Number(userId),
+        },
+        data: {
+          emailIsPublic: emailIsPublic,
+          fullnameIsPublic: fullnameIsPublic,
+          fullname:fullname,
+          bio: bio
+        }
+      })
+      res.json(user)
+    } else {
+      res.json({ error: notFound('User', userId) })
     }
-  });
+  })
+  .delete(async (req, res) => {
+    const { userId } = req.params
+    const userExists = await validateUser(userId)
+    if(userExists) {
+      const user = await prisma.user.delete({
+        where: {
+          id: Number(userId),
+        },
+      })
+      res.json(user)
+    } else {
+      res.json({ error: notFound('User', userId) })
+    }
+  })
 
 app.route('/users/:userId/posts')
   .get(async (req, res) => {
     const { userId } = req.params
-    const result = await prisma.post.findMany({
-      where: {
-        authorId: Number(userId),
-      }
-    })
-    res.json(result)
+    const userExists = await validateUser(userId)
+    if(userExists) {
+      const userPosts = await prisma.post.findMany({
+        where: {
+          authorId: Number(userId),
+        }
+      })
+      res.json(userPosts)
+    } else {
+      res.json({ error: notFound('User', userId) })
+    }
   })
   .post(async (req, res) => {
-    const { title, content, authorId } = req.body;
-    try {
-      const result = await prisma.post.create({
+    const { userId } = req.params
+    const { title, content } = req.body;
+    const userExists = await validateUser(userId)
+    if (userExists) {
+      const post = await prisma.post.create({
         data: {
-          author: { connect: { id: authorId } },
+          author: { connect: { id: Number(userId)} },
           title,
           content,
         },
       });
-      res.send(result);
-    } catch (error) {
-      res.json({ error: `Can't create post, not found userID ${authorId}` });
+      res.send(post);
+    } else {
+      res.json({ error: notFound('User', userId)});
+    }
+  })
+  .delete(async (req, res) => {
+    const { userId } = req.params
+    const userExists = await validateUser(userId)
+    if (userExists) {
+      const posts = await prisma.post.deleteMany({
+        where: {
+          authorId: Number(userId)
+        }
+      })
+      res.send(posts);
+    } else {
+      res.json({ error: notFound('User', userId)});
     }
   });
 
 app.route('/posts')
   .get(async (req, res) => {
-    const result = await prisma.post.findMany();
-    res.send(result);
+    const allPosts = await prisma.post.findMany();
+    res.send(allPosts);
   })
 
-app.route(`users/:userId/posts/:postId`)
+app.route('/users/:userId/posts/:postId')
   .get(async (req, res) => {
     const { userId, postId } = req.params
-    const post = await prisma.post.findFirst({
-      where: {
-        id: Number(postId),
-        authorId: Number(userId)
+    const userExists = await validateUser(userId)
+    if (userExists) {
+      const postExists = await validatePost(userId, postId)
+      if(postExists){
+        const post = await prisma.post.findFirst({
+          where: {
+            id: Number(postId),
+            authorId: Number(userId)
+          }
+        })
+        res.json(post)
+      } else {
+        res.json({ error: notFound('Post', postId) });
       }
-    })
-    res.json(post)
+    } else  {
+      res.json({ error: notFound('User', userId) });
+    }
   })
   .patch(async (req, res) => {
-    const { postId } = req.params
+    const { userId, postId } = req.params
     const { title, content } = req.body;
-    try{
-    const post = await prisma.post.update({
-      where: {
-        id: Number(postId),
-      },
-      data: {
-        title: title,
-        content: content, 
+    const userExists = await validateUser(userId)
+    if(userExists){
+      const postExists = await validatePost(userId, postId)
+      if(postExists){
+        const post = await prisma.post.update({
+          where: {
+            id: Number(postId),
+          },
+          data: {
+            title: title,
+            content: content, 
+          }
+        })
+        res.json(post)
+      } else {
+        res.json({ error: notFound('Post', postId) });
       }
-    })
-    res.json(post)
-    } catch (error) {
-      res.json({ error: `Post with ID ${postId} does not exist in the database` })
+    } else {
+      res.json({ error: notFound('User', userId) })
     }
   })
   .delete(async (req, res) => {
-    const { postId } = req.params
-    const post = await prisma.post.delete({
-      where: {
-        id: Number(postId),
-      },
-    })
-    res.json(post)
+    const { userId, postId } = req.params
+    const userExists = await validateUser(userId)
+    if (userExists) {
+      const postExists = await validatePost(userId, postId)
+        if(postExists){
+        const post = await prisma.post.delete({
+          where: {
+            id: Number(postId)
+          }
+        })
+        res.json(post)
+      } else {
+        res.json({ error: notFound('Post', postId) })
+      }
+    } else {
+      res.json({ error: notFound('User', userId) })
+    }
   })
 
-app.route('users/:userId/posts/:postId/comments')
+app.route('/users/:userId/posts/:postId/comments')
   .get(async (req, res) => {
     const { userId, postId } = req.params
-    const comments = await prisma.comments.findMany({
-      where: {
-        postId: Number(postId),
-        authorId: Number(userId)
+    const userExists = await validateUser(userId)
+    if (userExists) {
+      const postExists = await validatePost(userId, postId)
+      if(postExists){
+        const comments = await prisma.comments.findMany({
+          where: {
+            postId: Number(postId),
+            authorId: Number(userId)
+          }
+        })
+        res.json(comments)
+      } else {
+        res.json({ error: notFound('Post', postId) });
       }
-    })
-    res.json(comments)
+    } else {
+      res.json({ error: notFound('User', userId) })
+    } 
   })
   .post(async (req, res) => {
-    const { content, authorId, postId } = req.body;
-    try {
-      const result = await prisma.comments.create({
+    const { userId, postId } = req.params
+    const { content } = req.body;
+    const userExists = await validateUser(userId)
+    if (userExists) {
+      const postExists = await validatePost(userId, postId)
+      if(postExists){
+      const comment = await prisma.comments.create({
         data: {
-          author: { connect: { id: authorId } },
+          author: { connect: { id: Number(userId) } },
           content,
-          post: { connect: { id: postId } },
+          post: { connect: { id: Number(postId) } },
         },
       });
-      res.send(result);
-    } catch (error) {
-      res.json(error);
-      //no user record, no post record
-    }
+      res.send(comment);
+      } else {
+        res.json({ error: notFound('Post', postId) });
+      }
+    } else {
+      res.json({ error: notFound('User', userId) })
+    } 
   });
 
-app.route(`users/:userId/posts/:postId/comments/:commentId`)
+app.route('/users/:userId/posts/:postId/comments/:commentId')
   .get(async (req, res) => {
     const { userId, postId, commentId } = req.params
-    const comment = await prisma.comments.findFirst({
-      where: {
-        id: Number(commentId),
-        authorId: Number(userId),
-        postId: Number(postId)
+    const userExists = await validateUser(userId)
+    if (userExists) {
+      const postExists = await validatePost(userId, postId)
+      if(postExists){
+        const commentExists = await validateComment(userId, postId, commentId)
+          if (commentExists) {
+          const comment = await prisma.comments.findUnique({
+            where: {
+              id: Number(commentId)
+            }
+          })
+          res.json(comment)
+        } else {
+          res.json({ error: notFound('Comment', commentId) });
+        }
+      } else {
+        res.json({ error: notFound('Post', postId) });
       }
-    })
-    res.json(comment)
+    } else {
+      res.json({ error: notFound('User', userId) })
+    } 
   })
   .patch(async (req, res) => {
-    const { commentId } = req.params
+    const { userId, postId, commentId } = req.params
     const { content } = req.body;
-    try{
-    const comment = await prisma.comments.update({
-      where: {
-        id: Number(commentId),
-      },
-      data: {
-        content: content, 
+    const userExists = await validateUser(userId)
+    if (userExists) {
+      const postExists = await validatePost(userId, postId)
+      if(postExists){
+        const commentExists = await validateComment(userId, postId, commentId)
+        if (commentExists) {
+          const comment = await prisma.comments.update({
+            where: {
+              id: Number(commentId)
+            },
+            data: {
+              content: content, 
+            }
+          })
+          res.json(comment)
+        } else {
+          res.json({ error: notFound('Comment', commentId) });
+        }
+      } else {
+        res.json({ error: notFound('Post', postId) });
       }
-    })
-    res.json(comment)
-    } catch (error) {
-      res.json({ error: `Comment with ID ${commentId} does not exist in the database` })
-    }
+    } else {
+      res.json({ error: notFound('User', userId) })
+    } 
   })
   .delete(async (req, res) => {
-    const { commentId } = req.params
-    const comment = await prisma.comments.delete({
-      where: {
-        id: Number(commentId),
-      },
-    })
-    res.json(comment)
-  })
-
+    const { userId, postId, commentId } = req.params
+    const userExists = await validateUser(userId)
+    if (userExists) {
+      const postExists = await validatePost(userId, postId)
+      if(postExists){
+        const commentExists = await validateComment(userId, postId, commentId)
+        if (commentExists) {
+          const comment = await prisma.comments.delete({
+            where: {
+              id: Number(commentId)
+            },
+          })
+          res.json(comment)
+        } else {
+          res.json({ error: notFound('Comment', commentId) });
+        }
+      } else {
+        res.json({ error: notFound('Post', postId) });
+      }
+    } else {
+      res.json({ error: notFound('User', userId) })
+    } 
+  });
 
 export { app };
