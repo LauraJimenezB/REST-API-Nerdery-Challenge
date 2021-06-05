@@ -42,8 +42,20 @@ async function validateUser (id: string): Promise<boolean>{
       return false
     }
   }
-  
- const notFound = (type: string, id: string): string => `${type} with ID ${id} does not exist in the database`;
+
+  interface errorMessage {
+      statusCode: number,
+      message: string,
+      error: string
+  }
+
+  const notFound = (type: string, id: string): errorMessage => { 
+    return {
+        statusCode: 404, 
+        message: `${type} with ID ${id} not found`,
+        error: "Bad Request"
+    }
+  }
   
 export {
     validateUser,

@@ -28,7 +28,7 @@ app.post('/signup', async (req, res) => {
 app.route('/users')
   .get(async (req, res) => {
     const users = await prisma.user.findMany();
-    res.send(users);
+    res.json(users);
   });
 
 
@@ -43,7 +43,7 @@ app.route('/users/:userId')
     if(user) {
       res.json(user)
     } else {
-      res.json({ error: notFound('User', userId) })
+      res.status(404).json(notFound('User', userId))
     }
   })
   .patch(async (req, res) => {
@@ -64,7 +64,7 @@ app.route('/users/:userId')
       })
       res.json(user)
     } else {
-      res.json({ error: notFound('User', userId) })
+      res.status(404).json(notFound('User', userId))
     }
   })
   .delete(async (req, res) => {
@@ -78,7 +78,7 @@ app.route('/users/:userId')
       })
       res.json(user)
     } else {
-      res.json({ error: notFound('User', userId) })
+      res.status(404).json(notFound('User', userId))
     }
   })
 
@@ -94,7 +94,7 @@ app.route('/users/:userId/posts')
       })
       res.json(userPosts)
     } else {
-      res.json({ error: notFound('User', userId) })
+      res.status(404).json(notFound('User', userId))
     }
   })
   .post(async (req, res) => {
@@ -111,7 +111,7 @@ app.route('/users/:userId/posts')
       });
       res.send(post);
     } else {
-      res.json({ error: notFound('User', userId)});
+      res.status(404).json(notFound('User', userId))
     }
   })
   .delete(async (req, res) => {
@@ -125,7 +125,7 @@ app.route('/users/:userId/posts')
       })
       res.send(posts);
     } else {
-      res.json({ error: notFound('User', userId)});
+      res.status(404).json(notFound('User', userId))
     }
   });
 
@@ -150,10 +150,10 @@ app.route('/users/:userId/posts/:postId')
         })
         res.json(post)
       } else {
-        res.json({ error: notFound('Post', postId) });
+        res.status(404).json(notFound('Post', postId))
       }
     } else  {
-      res.json({ error: notFound('User', userId) });
+      res.status(404).json(notFound('User', userId))
     }
   })
   .patch(async (req, res) => {
@@ -174,10 +174,10 @@ app.route('/users/:userId/posts/:postId')
         })
         res.json(post)
       } else {
-        res.json({ error: notFound('Post', postId) });
+        res.status(404).json(notFound('Post', postId))
       }
     } else {
-      res.json({ error: notFound('User', userId) })
+      res.status(404).json(notFound('User', userId))
     }
   })
   .delete(async (req, res) => {
@@ -193,10 +193,10 @@ app.route('/users/:userId/posts/:postId')
         })
         res.json(post)
       } else {
-        res.json({ error: notFound('Post', postId) })
+        res.status(404).json(notFound('Post', postId))
       }
     } else {
-      res.json({ error: notFound('User', userId) })
+      res.status(404).json(notFound('User', userId))
     }
   })
 
@@ -215,10 +215,10 @@ app.route('/users/:userId/posts/:postId/comments')
         })
         res.json(comments)
       } else {
-        res.json({ error: notFound('Post', postId) });
+        res.status(404).json(notFound('Post', postId))
       }
     } else {
-      res.json({ error: notFound('User', userId) })
+      res.status(404).json(notFound('User', userId))
     } 
   })
   .post(async (req, res) => {
@@ -237,10 +237,10 @@ app.route('/users/:userId/posts/:postId/comments')
       });
       res.send(comment);
       } else {
-        res.json({ error: notFound('Post', postId) });
+        res.status(404).json(notFound('Post', postId))
       }
     } else {
-      res.json({ error: notFound('User', userId) })
+      res.status(404).json(notFound('User', userId))
     } 
   });
 
@@ -260,13 +260,13 @@ app.route('/users/:userId/posts/:postId/comments/:commentId')
           })
           res.json(comment)
         } else {
-          res.json({ error: notFound('Comment', commentId) });
+          res.status(404).json(notFound('Comment', commentId))
         }
       } else {
-        res.json({ error: notFound('Post', postId) });
+        res.status(404).json(notFound('Post', postId))
       }
     } else {
-      res.json({ error: notFound('User', userId) })
+      res.status(404).json(notFound('User', userId))
     } 
   })
   .patch(async (req, res) => {
@@ -288,13 +288,13 @@ app.route('/users/:userId/posts/:postId/comments/:commentId')
           })
           res.json(comment)
         } else {
-          res.json({ error: notFound('Comment', commentId) });
+          res.status(404).json(notFound('Comment', commentId))
         }
       } else {
-        res.json({ error: notFound('Post', postId) });
+        res.status(404).json(notFound('Post', postId))
       }
     } else {
-      res.json({ error: notFound('User', userId) })
+      res.status(404).json(notFound('User', userId))
     } 
   })
   .delete(async (req, res) => {
@@ -312,13 +312,13 @@ app.route('/users/:userId/posts/:postId/comments/:commentId')
           })
           res.json(comment)
         } else {
-          res.json({ error: notFound('Comment', commentId) });
+          res.status(404).json(notFound('Comment', commentId))
         }
       } else {
-        res.json({ error: notFound('Post', postId) });
+        res.status(404).json(notFound('Post', postId))
       }
     } else {
-      res.json({ error: notFound('User', userId) })
+      res.status(404).json(notFound('User', userId))
     } 
   });
 
