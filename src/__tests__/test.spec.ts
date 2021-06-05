@@ -1,4 +1,3 @@
 describe('Fake test', () => {
-  it('does nothing', async () => {
-  })
-})
+  it('does nothing', async () => {});
+});

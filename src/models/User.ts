@@ -6,11 +6,14 @@ export interface IUser {
   password: string;
 }
 
-export const encryptPassword = async(password: string): Promise<string> => {
+export const encryptPassword = async (password: string): Promise<string> => {
   const salt = await bcrypt.genSalt(10);
-  return bcrypt.hash(password, salt)
-}
+  return bcrypt.hash(password, salt);
+};
 
-// async function validatePassword(password: string):Promise<boolean>{
-//   return await bcrypt.compare(password, this.password)
-// }
+export async function validatePassword(
+  plainTextPassword: string,
+  hashedPassword: string,
+): Promise<boolean> {
+  return await bcrypt.compare(plainTextPassword, hashedPassword);
+}
