@@ -1,13 +1,14 @@
 import { Prisma, PrismaClient } from '@prisma/client';
 import express, { Application } from 'express';
 import morgan from 'morgan';
+import { signin, signup, profile } from './helpers/auth';
 import {
   validateUser,
   validatePost,
   validateComment,
   notFound,
 } from './helpers/route_validators';
-import { router } from './routes/auth';
+import userRouter from './routes/user.route';
 
 const prisma = new PrismaClient();
 const app: Application = express();
@@ -17,19 +18,11 @@ app.use(morgan('dev'));
 app.use(express.json());
 
 //routes
-app.use('/api/auth', router);
+app.post('/signup', signup);
+app.post('/signin', signin);
 
-app.post('/signup', async (req, res) => {
-  const { username, email, password } = req.body;
-  const result = await prisma.user.create({
-    data: {
-      username,
-      email,
-      password,
-    },
-  });
-  res.send(result);
-});
+app.use('/api', profile);
+app.use('/api/users', userRouter);
 
 app.route('/users').get(async (req, res) => {
   const users = await prisma.user.findMany();
