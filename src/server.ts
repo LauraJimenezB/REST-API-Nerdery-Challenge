@@ -1,10 +1,17 @@
 import { Prisma, PrismaClient } from '@prisma/client';
-import express from 'express';
+import express, { Application } from 'express';
+import morgan from 'morgan';
+import { router } from './routes/auth';
 
 const prisma = new PrismaClient();
-const app = express();
+const app: Application = express();
 
+//middlewares
+app.use(morgan('dev'));
 app.use(express.json());
+
+//routes
+app.use('/api/auth',router)
 
 app.post('/signup', async (req, res) => {
   const { username, email, password } = req.body;
