@@ -1,11 +1,13 @@
 import { Prisma, PrismaClient } from '@prisma/client';
-import express from 'express';
+import express, { Application } from 'express';
+import morgan from 'morgan';
 import {
   validateUser,
   validatePost,
   validateComment,
   notFound
-} from './helpers/route_validators'
+} from './helpers/route_validators';
+import { router } from './routes/auth';
 
 const prisma = new PrismaClient();
 const app: Application = express();
