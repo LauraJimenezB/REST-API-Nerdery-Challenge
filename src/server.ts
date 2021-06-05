@@ -8,9 +8,14 @@ import {
 } from './helpers/route_validators'
 
 const prisma = new PrismaClient();
-const app = express();
+const app: Application = express();
 
+//middlewares
+app.use(morgan('dev'));
 app.use(express.json());
+
+//routes
+app.use('/api/auth',router)
 
 app.post('/signup', async (req, res) => {
   const { username, email, password } = req.body;
@@ -82,7 +87,8 @@ app.route('/users/:userId')
     }
   })
 
-app.route('/users/:userId/posts')
+app
+  .route('/users/:userId/posts')
   .get(async (req, res) => {
     const { userId } = req.params
     const userExists = await validateUser(userId)
