@@ -36,6 +36,10 @@ app.route('/users')
   .get(async (req, res) => {
     const users = await prisma.user.findMany();
     res.json(users);
+  })
+  .delete(async (req, res) => {
+    const users = await prisma.user.deleteMany();
+    res.json(users);
   });
 
 
@@ -107,11 +111,12 @@ app
   })
   .post(async (req, res) => {
     const { userId } = req.params
-    const { title, content } = req.body;
+    const { title, content,id } = req.body;
     const userExists = await validateUser(userId)
     if (userExists) {
       const post = await prisma.post.create({
         data: {
+          id,
           author: { connect: { id: Number(userId)} },
           title,
           content,
