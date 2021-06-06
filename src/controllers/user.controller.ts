@@ -13,6 +13,7 @@ export const getUsers = async (req: Request, res: Response) => {
 }
 
 export const getUser = async(req: Request, res: Response) => {
+  
   try {
     const { id } = req.params;
     console.log('req.params', req.params)
@@ -21,15 +22,16 @@ export const getUser = async(req: Request, res: Response) => {
         id: Number(id),
       },
     });
-    console.log('user', user);
+    //console.log('user', user);
     
     if (user) {
-      res.json(user);
+      return res.json(user);
     } else {
-      res.status(404).json(notFound('User', id));
+      return res.status(404).json(notFound('User', id));
     }
+
   } catch (e) {
     console.error(e)
-    res.status(400).json(e)
+    return res.status(400).json(e)
   }
 }

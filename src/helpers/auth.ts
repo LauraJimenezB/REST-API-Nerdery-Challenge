@@ -84,7 +84,7 @@ export const signin = async (req: Request, res: Response) => {
     },
   );
 
-  res.header('auth-token', token).json(user);
+  return res.header('auth-token', token).json(user);
 };
 
 export const profile = async (
@@ -103,7 +103,9 @@ export const profile = async (
       },
     });
     if (!user) return res.status(404).json('No user found');
-    res.json({ id: user.id, username: user.username, email: user.email });
+    //console.log('veamos...',user)
+    res.status(200).json({ id: user.id, username: user.username, email: user.email });
+    //res.json(user);
     next()
   } catch (e) {
     //console.error(e);

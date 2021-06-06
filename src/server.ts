@@ -23,6 +23,7 @@ app.post('/signin', signin);
 
 app.use('/api', profile);
 app.use('/api/users', userRouter);
+//app.use('/api/posts', userRouter);
 
 app.route('/users').get(async (req, res) => {
   const users = await prisma.user.findMany();
