@@ -1,6 +1,6 @@
-import { Request, Response } from 'express';
+import { request, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { notFound, validatePostWithoutUser } from '../helpers/route_validators';
+import { notFound, validatePostWithoutUser, validatePost } from '../helpers/route_validators';
 
 const prisma = new PrismaClient();
 
@@ -40,12 +40,12 @@ export const createSinglePost = async (
           id,
           title,
           content,
-          author: { connect: { id: Number(req.body.user.id)} },
+          author: { connect: { id: Number(req.body.user.id) } },
         },
       });
       return res.send(post);
     } else {
-        return res.status(401).json('No authorizated to create a post!')
+      return res.status(401).json('No authorizated to create a post!');
     }
   } catch (e) {
     return res.status(400).json(e);
@@ -74,6 +74,16 @@ export const getSinglePost = async (
   }
 };
 
+const getValidatePost = async (postId: string) => {
+  const result = await prisma.post.findUnique({
+    where: {
+      id: Number(postId),
+    },
+  });
+  if (result) return result;
+  else throw new Error(`${postId} not exist`);
+};
+
 export const updateSinglePost = async (
   req: Request,
   res: Response,
@@ -82,20 +92,26 @@ export const updateSinglePost = async (
     const { postId } = req.params;
     const { title, content } = req.body;
     const postExists = await validatePostWithoutUser(postId);
-    if (postExists) {
-      const post = await prisma.post.update({
-        where: {
-          id: Number(postId),
-        },
-        data: {
-          title: title,
-          content: content,
-        },
-      });
-      return res.json(post);
-    } else {
+    if (!postExists) {
       return res.status(404).json(notFound('Post', postId));
-    }
+    } else {
+      const getPost = await getValidatePost(postId);
+
+      if (getPost.authorId == req.body.user.id) {
+        const post = await prisma.post.update({
+          where: {
+            id: Number(postId),
+          },
+          data: {
+            title: title,
+            content: content,
+          },
+        });
+        return res.json(post);
+      } else {
+        return res.status(401).json('No authorizated to update this post!');
+      }
+    } 
   } catch (e) {
     return res.status(400).json(e);
   }
@@ -107,18 +123,26 @@ export const deleteSinglePost = async (
 ): Promise<Response<'json'>> => {
   try {
     const { postId } = req.params;
-    const postExists = await validatePostWithoutUser(postId);
-    if (postExists) {
-      const post = await prisma.post.delete({
-        where: {
-          id: Number(postId),
-        },
-      });
-      return res.json(post);
+    const userId = req.body.user.id
+    const postExists = await validatePost(userId, postId);
+    if (!postExists) {
+        return res.status(404).json(notFound('Post', postId));
     } else {
-      return res.status(404).json(notFound('Post', postId));
-    }
+        const getPost = await getValidatePost(postId);
+        if (getPost.authorId == req.body.user.id) {
+            const post = await prisma.post.delete({
+            where: {
+                id: Number(postId),
+            },
+            });
+            return res.json(post);
+        } else {
+          return res.status(401).json('No authorizated to update this post!');
+        }
+    } 
   } catch (e) {
+		console.log('error', e);
+		
     return res.status(400).json(e);
   }
 };

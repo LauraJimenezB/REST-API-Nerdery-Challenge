@@ -1,11 +1,11 @@
 //import { PrismaClient } from '@prisma/client';
-import express, { Application } from 'express'
-import morgan from 'morgan'
-import { signin, signup, protect } from './helpers/auth'
-import { router as userRouter } from './routes/user.route'
-import { router as postRouter } from './routes/post.route'
-import { router as commentRouter } from './routes/comment.route'
-import { getPosts } from './controllers/post.controller'
+import express, { Application } from 'express';
+import morgan from 'morgan';
+import { signin, signup, protect } from './helpers/auth';
+import { router as userRouter } from './routes/user.route';
+import { router as postRouter } from './routes/post.route';
+import { router as commentRouter } from './routes/comment.route';
+import { getPosts } from './controllers/post.controller';
 
 //const prisma = new PrismaClient();
 
@@ -25,9 +25,6 @@ app.use('/api', protect);
 
 app.use('/api/users', userRouter);
 app.use('/api/posts', postRouter);
-
-app.use('/api/posts', postRouter);
 app.use('/api/comments', commentRouter);
-
 
 export { app };
