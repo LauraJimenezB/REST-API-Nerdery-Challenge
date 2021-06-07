@@ -9,12 +9,18 @@ const prisma = new PrismaClient();
 
 export const getUsers = async (req: Request, res: Response) => {
   const users = await prisma.user.findMany();
-  return res.json(users);
+  return res.status(200).json(users);
 }
 
 export const getUser = async(req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    // console.log('id', id);
+    // console.log('req.body.user', req.body.user.id);
+    
+    // if( id != req.body.user.id){
+    //   return res.status(400).json({ message: 'no puedes acceder a otros uausrios!'})
+    // }
     //console.log('req.params', req.params)
     const user = await prisma.user.findUnique({
       where: {

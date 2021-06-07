@@ -13,7 +13,7 @@ export interface IPayload {
 
 export const verifyToken = async (token: string) => {
   const payload = (await jwt.verify(
-    token,
+    token.trim(),
     process.env.TOKEN_SECRET || 'secret',
   )) as IPayload;
 
@@ -103,21 +103,21 @@ export const profile = async (
   }
 
   try {
+    
     const payload = await verifyToken(token);
+
     const user = await prisma.user.findUnique({
       where: {
         id: payload.id,
       },
     });
     //console.log('veamos...',user)
-    //res.status(200).json({ id: user.id, username: user.username, email: user.email });
+    //res.status(200).send({user});
     //res.json(user);
-    req.userId = user;
+    req.body.user = user;
     next();
   } catch (e) {
     console.error(e);
     return res.status(401).json(e);
   }
-
-  next();
 };
