@@ -11,7 +11,20 @@ export interface IPayload {
   exp: number;
 }
 
-export const verifyToken = async (token: string) => {
+interface IUser {
+  id: number,
+  username: string,
+  email: string,
+  password: string
+}
+
+export const newToken = (user: IUser): string => {
+  return jwt.sign({ id: user.id }, process.env.TOKEN_SECRET || 'secret', {
+    expiresIn: '1d'
+  })
+}
+
+export const verifyToken = async (token: string): Promise<IPayload> => {
   const payload = (await jwt.verify(
     token.trim(),
     process.env.TOKEN_SECRET || 'secret',
@@ -86,6 +99,7 @@ export const signin = async (req: Request, res: Response) => {
     return res.status(400).send({ message: 'Not auth' });
   }
 };
+
 
 export const profile = async (
   req: Request,

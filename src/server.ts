@@ -21,15 +21,26 @@ app.use(express.json());
 app.post('/signup', signup);
 app.post('/signin', signin);
 
+
+/* app.route('/users')
+  .get(async (req, res) => {
+    const users = await prisma.user.findMany();
+    res.json(users);
+  })
+  .delete(async (req, res) => {
+    const users = await prisma.user.deleteMany();
+    res.json(users);
+  }); */
+
 app.use('/api', profile);
 app.use('/api/users', userRouter);
-//app.use('/api/posts', userRouter);
 
-app.route('/users').get(async (req, res) => {
+/* app.route('/users').get(async (req, res) => {
   const users = await prisma.user.findMany();
   res.json(users);
-});
+}); */
 
+/* 
 app
   .route('/users/:userId')
   .get(async (req, res) => {
@@ -80,8 +91,8 @@ app
       res.status(404).json(notFound('User', userId));
     }
   });
-
-app
+ */
+/* app
   .route('/users/:userId/posts')
   .get(async (req, res) => {
     const { userId } = req.params;
@@ -98,13 +109,14 @@ app
     }
   })
   .post(async (req, res) => {
-    const { userId } = req.params;
-    const { title, content } = req.body;
-    const userExists = await validateUser(userId);
+    const { userId } = req.params
+    const { title, content,id } = req.body;
+    const userExists = await validateUser(userId)
     if (userExists) {
       const post = await prisma.post.create({
         data: {
-          author: { connect: { id: Number(userId) } },
+          id,
+          author: { connect: { id: Number(userId)} },
           title,
           content,
         },
@@ -127,13 +139,13 @@ app
     } else {
       res.status(404).json(notFound('User', userId));
     }
-  });
+  }); */
 
-app.route('/posts').get(async (req, res) => {
+/* app.route('/posts').get(async (req, res) => {
   const allPosts = await prisma.post.findMany();
   res.send(allPosts);
-});
-
+}); */
+/* 
 app
   .route('/users/:userId/posts/:postId')
   .get(async (req, res) => {
@@ -198,7 +210,7 @@ app
     } else {
       res.status(404).json(notFound('User', userId));
     }
-  });
+  }); */
 
 app
   .route('/users/:userId/posts/:postId/comments')
