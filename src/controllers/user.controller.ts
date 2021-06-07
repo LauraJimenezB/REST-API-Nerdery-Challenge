@@ -9,14 +9,13 @@ const prisma = new PrismaClient();
 
 export const getUsers = async (req: Request, res: Response) => {
   const users = await prisma.user.findMany();
-  res.json(users);
+  return res.json(users);
 }
 
 export const getUser = async(req: Request, res: Response) => {
-  
   try {
     const { id } = req.params;
-    console.log('req.params', req.params)
+    //console.log('req.params', req.params)
     const user = await prisma.user.findUnique({
       where: {
         id: Number(id),
