@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
-import { PrismaClient, User } from '@prisma/client';
-import { validateUser, notFound } from '../helpers/route_validators';
+import { PrismaClient } from '@prisma/client';
+import {
+  validateUser,
+  notFound,
+} from '../helpers/route_validators';
 
 const prisma = new PrismaClient();
 
@@ -81,8 +84,8 @@ export const updateUser = async (
           id: Number(userId),
         },
         data: {
-          emailIsPublic: emailIsPublic,
-          fullnameIsPublic: fullnameIsPublic,
+          emailIsPublic: (emailIsPublic =="true"),
+          fullnameIsPublic: (fullnameIsPublic =="true"),
           fullname: fullname,
           bio: bio,
         },
