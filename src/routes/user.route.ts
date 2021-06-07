@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { getPosts, deletePosts, createSinglePost, getSinglePost, updateSinglePost, deleteSinglePost } from '../controllers/post.controller';
 import { getUsers, getUser, updateUser, deleteUser } from '../controllers/user.controller';
 
 const router: Router = Router();
@@ -16,16 +15,5 @@ router
   .patch(updateUser)
   .delete(deleteUser)
 
-router
-  .route('/:userId/posts')
-  .get(getPosts)
-  .delete(deletePosts)
-  .post(createSinglePost)
 
-router
-  .route('/:userId/posts/:postId')
-  .get(getSinglePost)
-  .delete(deleteSinglePost)
-  .patch(updateSinglePost)
-
-export default router;
+export {router}

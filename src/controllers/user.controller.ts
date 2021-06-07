@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { PrismaClient, User } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import {
   validateUser,
   notFound,
@@ -71,8 +71,8 @@ export const updateUser = async (req: Request, res: Response): Promise<Response<
           id: Number(userId),
         },
         data: {
-          emailIsPublic: emailIsPublic,
-          fullnameIsPublic: fullnameIsPublic,
+          emailIsPublic: (emailIsPublic =="true"),
+          fullnameIsPublic: (fullnameIsPublic =="true"),
           fullname: fullname,
           bio: bio,
         },

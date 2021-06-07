@@ -50,12 +50,12 @@ beforeEach( async() => {
       id: 2,
       username: "abc",
       email: "abc@gmail.com",
-      password: "$2a$10$SFUotjg8JHxyMTe5iQed8.CkcoZeVrYDB3TGMWFC.bteiujYRUZOO"
+      password: "password"
     },
   });
 })
 
-describe("Test /users endpoint", () => {
+describe("Test GET /users", () => {
   test("It should return a JSON of all users", async() => {
     const jwt = `Bearer ${token}`
     await request(app)
@@ -68,12 +68,18 @@ describe("Test /users endpoint", () => {
   test("It should return 2 users", async() => {
     const jwt = `Bearer ${token}`
     const response = await request(app).get('/api/users').set('Authorization', jwt)
-    console.log(response)
     expect(response.body).toHaveLength(2)
   });
+  /* test("It should return an ERROR: wrong endpoint", async() => {
+    const jwt = `Bearer ${token}`
+    await request(app)
+        .get('/api/uses')
+        .set('Authorization', jwt)
+        .expect(400)
+  }); */
 });
 
-describe("Test users/:id endpoint", () => {
+describe("Test GET /users/:userId", () => {
   test("It should return the user called with the id", async() => {
     const jwt = `Bearer ${token}`
     const response = await request(app).get('/api/users/1').set('Authorization', jwt)
@@ -81,7 +87,7 @@ describe("Test users/:id endpoint", () => {
     expect(response.body.username).toBe('example')
     expect(response.body.email).toBe('example@gmail.com')
   });
-  test("It should throw an error when the user id does not exists", async() => {
+  test("It should return an ERROR when the user id is not found", async() => {
     const userId = 123
     const jwt = `Bearer ${token}`
     const response = await request(app).get(`/api/users/${userId}`).set('Authorization', jwt)
@@ -90,51 +96,99 @@ describe("Test users/:id endpoint", () => {
       statusCode: 404, 
       message: `User with ID ${userId} not found`,
       error: "Bad Request"
-  })
+    })
   });
-  test("It should return the updated user", async() => {
+})
+
+describe("Test PATCH /users/:userId", () => {
+  test("It should return the updated user: set fullname & bio", async() => {
     const jwt = `Bearer ${token}`
     const response = await request(app)
       .patch('/api/users/1')
       .set('Authorization', jwt)
       .send({
-        fullNameIsPublic: true,
-        bio: "new Bio"
+        fullname: "Example Name",
+        bio: "creative bio"
       })
     expect(response.body.id).toBe(1)
-    //expect(response.body.fullNameIsPublic).toBe(true)
-    expect(response.body.bio).toBe("new Bio")
+    expect(response.body.fullname).toBe("Example Name")
+    expect(response.body.bio).toBe("creative bio")
   });
+  test("It should return the updated user: set public email", async() => {
+    const jwt = `Bearer ${token}`
+    const response = await request(app)
+      .patch('/api/users/1')
+      .set('Authorization', jwt)
+      .send({
+        emailIsPublic: "true",
+      })
+    expect(response.body.id).toBe(1)
+    expect(response.body.emailIsPublic).toBe(true)
+  });
+  test("It should return the updated user: set public fullname", async() => {
+    const jwt = `Bearer ${token}`
+    const response = await request(app)
+      .patch('/api/users/1')
+      .set('Authorization', jwt)
+      .send({
+        fullnameIsPublic: "true",
+      })
+    expect(response.body.id).toBe(1)
+    expect(response.body.fullnameIsPublic).toBe(true)
+  });
+  test("It should return ERROR when userId is not found", async() => {
+    const userId = 589
+    const jwt = `Bearer ${token}`
+    const response = await request(app)
+      .patch(`/api/users/${userId}`)
+      .set('Authorization', jwt)
+      .send({
+        fullnameIsPublic: "true",
+      })
+      expect(response.status).toBe(404)
+      expect(response.body).toEqual({
+        statusCode: 404, 
+        message: `User with ID ${userId} not found`,
+        error: "Bad Request"
+      })
+  });
+})
+
+describe("Test DELETE users/:id", () => {
   test("It should return the deleted user", async() => {
     const jwt = `Bearer ${token}`
-    await request(app)
-      .delete('/api/users/1')
-      .set('Authorization', jwt)
+    const deletedUser = await request(app).delete('/api/users/1').set('Authorization', jwt)
+    expect(deletedUser.body.id).toBe(1)
+
     const response = await request(app).get('/api/users').set('Authorization', jwt)
     expect(response.body).toHaveLength(1)
   });
+  /* test("It should return ERROR: not authorized", async() => {
+    await request(app)
+    .delete('/api/users/1')
+    .expect(401)
+  }); */
 });
 
 
-describe("Test users/:userId/posts endpoint", () => {
+describe("Test /api/posts endpoint", () => {
   test("It should get all the posts of a user", async() => {
     app.use(express.json())
     const jwt = `Bearer ${token}`
     await request(app)
-      .get('/api/users/1/posts')
-      .set('Authorization', jwt)
+      .get('/api/posts').set('Authorization', jwt)
       .expect(200)
       .expect('Content-Type', /application\/json/)
-    const response = await request(app).get('/api/users/1/posts').set('Authorization', jwt)
+    const response = await request(app).get('/api/posts').set('Authorization', jwt)
     expect(response.body).toHaveLength(2)
     expect(response.body[0].authorId).toBe(1)
     expect(response.body[1].authorId).toBe(1)
-  });
+  }); 
   test("It should create a post with the user id", async() => {
     const jwt = `Bearer ${token}`
     app.use(express.json());
     await request(app)
-      .post('/api/users/1/posts')
+      .post('/api/posts')
       .set('Authorization', jwt)
       .send({
         title: "POST #3",
@@ -142,22 +196,22 @@ describe("Test users/:userId/posts endpoint", () => {
       })
       .expect(200)
       .expect('Content-Type', /application\/json/)
-    const response = await request(app).get('/api/users/1/posts').set('Authorization', jwt)
+    const response = await request(app).get('/api/posts').set('Authorization', jwt)
     expect(response.body).toHaveLength(3)
-    expect(response.body[response.body.length-1].authorId).toBe(1)
+    expect(response.body[response.body.length-1]).toBe(1)
   });
   test("It should delete all posts of a user", async() => {
     const jwt = `Bearer ${token}`
     await request(app)
-      .delete('/api/users/1/posts')
+      .delete('/api/posts')
       .set('Authorization', jwt)
       .expect(200)
       .expect('Content-Type', /application\/json/)
-    const response = await request(app).get('/api/users/1/posts').set('Authorization', jwt)
+    const response = await request(app).get('/api/posts').set('Authorization', jwt)
     expect(response.body).toHaveLength(0)
   });
 });
-/* 
+ 
 describe("Test posts/ endpoint", () => {
   test("It should get all posts", async() => {
     app.use(express.json());
@@ -171,20 +225,20 @@ describe("Test posts/ endpoint", () => {
     expect(title).toContain('POST #1')
   });
   
-}); */
+});
 
 describe("Test users/:userId/posts/:postId endpoint", () => {
   test("It should get an specific post of a user", async() => {
     const jwt = `Bearer ${token}`
     app.use(express.json());
-    const response = await request(app).get('/api/users/1/posts/2').set('Authorization', jwt)
+    const response = await request(app).get('/api/posts/2').set('Authorization', jwt)
     expect(response.body.title).toBe('POST #2')
   });
   test("It should update an specific post of a user", async() => {
     const jwt = `Bearer ${token}`
     app.use(express.json());
     const response = await request(app)
-      .patch('/api/users/1/posts/1')
+      .patch('/api/posts/1')
       .set('Authorization', jwt)
       .send({
         title: "Edited title",
@@ -198,7 +252,7 @@ describe("Test users/:userId/posts/:postId endpoint", () => {
     const jwt = `Bearer ${token}`
     app.use(express.json());
     const response = await request(app)
-      .delete('/api/users/1/posts/1')
+      .delete('/api/posts/1')
       .set('Authorization', jwt)
       .expect(200)
       .expect('Content-Type', /application\/json/)
@@ -206,42 +260,49 @@ describe("Test users/:userId/posts/:postId endpoint", () => {
   });
 });
 
-/* 
-describe("Test users/:userId/posts/:postId/comments endpoint", () => {
+
+describe("Test /api/posts/:postId/comments endpoint", () => {
   test("It should get all the posts of a user", async() => {
+    const jwt = `Bearer ${token}`
     app.use(express.json());
     await request(app)
-      .get('/users/1/posts/2/comments')
+      .get('/api/posts/2/comments')
+      .set('Authorization', jwt)
       .expect(200)
       .expect('Content-Type', /application\/json/)
-    const response = await request(app).get('/users/1/posts/2/comments')
+    const response = await request(app).get('/api/posts/2/comments').set('Authorization', jwt)
     expect(response.body).toHaveLength(1)
   });
-  test("It should create a comment with the user id & post id", async() => {
+  /* test("It should create a comment with the user id & post id", async() => {
+    const jwt = `Bearer ${token}`
     app.use(express.json());
     await request(app)
-      .post('/users/1/posts/2/comments')
+      .post('/api/users/1/posts/2/comments')
+      .set('Authorization', jwt)
       .send({
         id: 2,
         content: "New comment"
       })
       .expect(200)
       .expect('Content-Type', /application\/json/)
-    const response = await request(app).get('/users/1/posts/2/comments')
+    const response = await request(app).get('/api/users/1/posts/2/comments').set('Authorization', jwt)
     expect(response.body).toHaveLength(2)
-  });
+  }); */
 });
-
+/* 
 describe("Test users/:userId/posts/:postId/comments/:commentId endpoint", () => {
   test("It should get an specific comments of a post and user", async() => {
+    const jwt = `Bearer ${token}`
     app.use(express.json());
-    const response = await request(app).get('/users/1/posts/2/comments/1')
+    const response = await request(app).get('/api/users/1/posts/2/comments/1').set('Authorization', jwt)
     expect(response.body.content).toBe('Short comment')
   });
   test("It should update an specific comment of post and user", async() => {
+    const jwt = `Bearer ${token}`
     app.use(express.json());
     const response = await request(app)
-      .patch('/users/1/posts/2/comments/1')
+      .patch('/api/users/1/posts/2/comments/1')
+      .set('Authorization', jwt)
       .send({
         content: "edited comment"
       })
@@ -250,15 +311,17 @@ describe("Test users/:userId/posts/:postId/comments/:commentId endpoint", () => 
     expect(response.body.content).toBe('edited comment')
   });
   test("It should delete an specific comment of a post and user", async() => {
+    const jwt = `Bearer ${token}`
     app.use(express.json());
     const response = await request(app)
-      .delete('/users/1/posts/2/comments/1')
+      .delete('/api/users/1/posts/2/comments/1')
+      .set('Authorization', jwt)
       .expect(200)
       .expect('Content-Type', /application\/json/)
     expect(response.body.content).toBe('Short comment')
   });
-}); */
-
+}); 
+ */
 afterAll( async() => {
    await prisma.$disconnect()
    server.close()

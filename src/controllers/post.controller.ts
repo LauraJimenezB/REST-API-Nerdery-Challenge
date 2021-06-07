@@ -1,14 +1,13 @@
 import { Request, Response } from 'express';
 import { PrismaClient} from '@prisma/client';
 import {
-  validateUser,
-  validatePost,
   notFound,
+  validatePostWithoutUser,
 } from '../helpers/route_validators';
 
 const prisma = new PrismaClient();
 
-export const getAllPosts = async (req: Request, res: Response): Promise<Response<"json">> => {
+export const getPosts = async (req: Request, res: Response): Promise<Response<"json">> => {
     try {
         const allPosts = await prisma.post.findMany();
         return res.send(allPosts);
@@ -17,39 +16,10 @@ export const getAllPosts = async (req: Request, res: Response): Promise<Response
     }
 }
 
-export const getPosts = async (req: Request, res: Response): Promise<Response<"json">> => {
-    try {
-        const { userId } = req.params;
-        const userExists = await validateUser(userId);
-        if (userExists) {
-        const userPosts = await prisma.post.findMany({
-            where: {
-            authorId: Number(userId),
-            },
-        });
-        return res.json(userPosts);
-        } else {
-        return res.status(404).json(notFound('User', userId));
-        }
-    } catch (e) {
-        return res.status(400).json(e)
-    }
-}
-
 export const deletePosts = async (req: Request, res: Response): Promise<Response<"json">> => {
     try {
-        const { userId } = req.params;
-        const userExists = await validateUser(userId);
-        if (userExists) {
-        const posts = await prisma.post.deleteMany({
-            where: {
-            authorId: Number(userId),
-            },
-        });
+        const posts = await prisma.post.deleteMany();
         return res.send(posts);
-        } else {
-        return res.status(404).json(notFound('User', userId));
-        }
     } catch (e) {
         return res.status(400).json(e)
     }
@@ -57,22 +27,15 @@ export const deletePosts = async (req: Request, res: Response): Promise<Response
 
 export const createSinglePost = async (req: Request, res: Response): Promise<Response<"json">> => {
     try {
-        const { userId } = req.params
         const { title, content,id } = req.body;
-        const userExists = await validateUser(userId)
-        if (userExists) {
             const post = await prisma.post.create({
             data: {
                 id,
-                author: { connect: { id: Number(userId)} },
                 title,
                 content,
                 },
             });
             return res.send(post);
-        } else {
-            return res.status(404).json(notFound('User', userId));
-        }
     } catch (e) {
         return res.status(400).json(e)
     }
@@ -80,23 +43,17 @@ export const createSinglePost = async (req: Request, res: Response): Promise<Res
 
 export const getSinglePost = async (req: Request, res: Response): Promise<Response<"json">> => {
     try {
-        const { userId, postId } = req.params;
-        const userExists = await validateUser(userId);
-        if (userExists) {
-        const postExists = await validatePost(userId, postId);
+        const { postId } = req.params;
+        const postExists = await validatePostWithoutUser(postId);
         if (postExists) {
-            const post = await prisma.post.findFirst({
+            const post = await prisma.post.findUnique({
             where: {
-                id: Number(postId),
-                authorId: Number(userId),
+                id: Number(postId)
             },
             });
             return res.json(post);
         } else {
             return res.status(404).json(notFound('Post', postId));
-        }
-        } else {
-        return res.status(404).json(notFound('User', userId));
         }
     } catch (e) {
         return res.status(400).json(e)
@@ -105,11 +62,9 @@ export const getSinglePost = async (req: Request, res: Response): Promise<Respon
 
 export const updateSinglePost = async (req: Request, res: Response): Promise<Response<"json">> => {
     try {
-        const { userId, postId } = req.params;
+        const { postId } = req.params;
         const { title, content } = req.body;
-        const userExists = await validateUser(userId);
-        if (userExists) {
-        const postExists = await validatePost(userId, postId);
+        const postExists = await validatePostWithoutUser(postId);
         if (postExists) {
             const post = await prisma.post.update({
             where: {
@@ -124,9 +79,6 @@ export const updateSinglePost = async (req: Request, res: Response): Promise<Res
         } else {
             return res.status(404).json(notFound('Post', postId));
         }
-        } else {
-        return res.status(404).json(notFound('User', userId));
-        }
     } catch (e) {
         return res.status(400).json(e)
     }
@@ -134,10 +86,8 @@ export const updateSinglePost = async (req: Request, res: Response): Promise<Res
 
 export const deleteSinglePost = async (req: Request, res: Response): Promise<Response<"json">> => {
     try {
-        const { userId, postId } = req.params;
-        const userExists = await validateUser(userId);
-        if (userExists) {
-        const postExists = await validatePost(userId, postId);
+        const { postId } = req.params;
+        const postExists = await validatePostWithoutUser(postId);
         if (postExists) {
             const post = await prisma.post.delete({
             where: {
@@ -148,11 +98,7 @@ export const deleteSinglePost = async (req: Request, res: Response): Promise<Res
         } else {
             return res.status(404).json(notFound('Post', postId));
         }
-        } else {
-            return res.status(404).json(notFound('User', userId));
-        }
     } catch (e) {
         return res.status(400).json(e)
     }
 }
-

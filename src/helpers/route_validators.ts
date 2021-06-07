@@ -28,6 +28,19 @@ async function validatePost(authorId: string, id: string): Promise<boolean> {
   }
 }
 
+async function validatePostWithoutUser(id: string): Promise<boolean> {
+  const post = await prisma.post.findUnique({
+    where: {
+      id: Number(id)
+    },
+  });
+  if (post) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 async function validateComment(
   authorId: string,
   postId: string,
@@ -61,4 +74,4 @@ const notFound = (type: string, id: string): errorMessage => {
   };
 };
 
-export { validateUser, validatePost, validateComment, notFound };
+export { validateUser, validatePost, validatePostWithoutUser, validateComment, notFound };

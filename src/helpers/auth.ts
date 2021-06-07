@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { Prisma, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { encryptPassword, validatePassword } from '../models/User';
 import jwt from 'jsonwebtoken';
 
