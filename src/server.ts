@@ -92,7 +92,7 @@ app
     }
   });
  */
-app
+/* app
   .route('/users/:userId/posts')
   .get(async (req, res) => {
     const { userId } = req.params;
@@ -139,13 +139,13 @@ app
     } else {
       res.status(404).json(notFound('User', userId));
     }
-  });
+  }); */
 
 /* app.route('/posts').get(async (req, res) => {
   const allPosts = await prisma.post.findMany();
   res.send(allPosts);
 }); */
-
+/* 
 app
   .route('/users/:userId/posts/:postId')
   .get(async (req, res) => {
@@ -210,7 +210,7 @@ app
     } else {
       res.status(404).json(notFound('User', userId));
     }
-  });
+  }); */
 
 app
   .route('/users/:userId/posts/:postId/comments')
