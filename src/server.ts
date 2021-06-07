@@ -9,6 +9,7 @@ import {
   notFound,
 } from './helpers/route_validators';
 import userRouter from './routes/user.route';
+import postRouter from './routes/post.route';
 
 const prisma = new PrismaClient();
 const app: Application = express();
@@ -21,18 +22,9 @@ app.use(express.json());
 app.post('/signup', signup);
 app.post('/signin', signin);
 
-/* app.route('/users')
-  .get(async (req, res) => {
-    const users = await prisma.user.findMany();
-    res.json(users);
-  })
-  .delete(async (req, res) => {
-    const users = await prisma.user.deleteMany();
-    res.json(users);
-  }); */
-
 app.use('/api', protect);
 app.use('/api/users', userRouter);
+app.use('/api/posts', postRouter);
 
 /* app.route('/users').get(async (req, res) => {
   const users = await prisma.user.findMany();

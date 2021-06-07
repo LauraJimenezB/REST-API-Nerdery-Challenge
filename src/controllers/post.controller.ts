@@ -49,7 +49,10 @@ export const deletePosts = async (
   try {
     const { userId } = req.params;
     const userExists = await validateUser(userId);
-    if (userExists) {
+    if (!userExists) {
+      return res.status(404).json(notFound('User', userId));
+    }
+    if (userExists && userId == req.body.user.id) {
       const posts = await prisma.post.deleteMany({
         where: {
           authorId: Number(userId),
@@ -57,7 +60,9 @@ export const deletePosts = async (
       });
       return res.send(posts);
     } else {
-      return res.status(404).json(notFound('User', userId));
+      return res
+        .status(401)
+        .json({ message: 'No tiene permisos para eliminar todos los post!' });
     }
   } catch (e) {
     return res.status(400).json(e);
@@ -72,7 +77,10 @@ export const createSinglePost = async (
     const { userId } = req.params;
     const { title, content, id } = req.body;
     const userExists = await validateUser(userId);
-    if (userExists) {
+
+    if (!userExists) {
+      return res.status(404).json(notFound('User', userId));
+    } else if (userExists && userId == req.body.user.id) {
       const post = await prisma.post.create({
         data: {
           id,
@@ -83,7 +91,9 @@ export const createSinglePost = async (
       });
       return res.send(post);
     } else {
-      return res.status(404).json(notFound('User', userId));
+      return res
+        .status(401)
+        .json({ message: 'No tiene permisos para agregar nuevos post!' });
     }
   } catch (e) {
     return res.status(400).json(e);
@@ -126,7 +136,9 @@ export const updateSinglePost = async (
     const { userId, postId } = req.params;
     const { title, content } = req.body;
     const userExists = await validateUser(userId);
-    if (userExists) {
+    if (!userExists) {
+      return res.status(404).json(notFound('User', userId));
+    } else if (userExists && userId == req.body.user.id) {
       const postExists = await validatePost(userId, postId);
       if (postExists) {
         const post = await prisma.post.update({
@@ -143,7 +155,9 @@ export const updateSinglePost = async (
         return res.status(404).json(notFound('Post', postId));
       }
     } else {
-      return res.status(404).json(notFound('User', userId));
+      return res
+        .status(401)
+        .json({ message: 'No tiene permisos para actualizar el post!' });
     }
   } catch (e) {
     return res.status(400).json(e);
@@ -157,12 +171,10 @@ export const deleteSinglePost = async (
   try {
     const { userId, postId } = req.params;
 
-    if( userId != req.body.user.id){
-      return res.status(401).json({ message: 'No puede eliminar otros posts!'})
-    }
-
     const userExists = await validateUser(userId);
-    if (userExists) {
+    if (!userExists) {
+      return res.status(404).json(notFound('User', userId));
+    } else if (userExists && userId == req.body.user.id) {
       const postExists = await validatePost(userId, postId);
       if (postExists) {
         const post = await prisma.post.delete({
@@ -175,7 +187,9 @@ export const deleteSinglePost = async (
         return res.status(404).json(notFound('Post', postId));
       }
     } else {
-      return res.status(404).json(notFound('User', userId));
+      return res
+        .status(401)
+        .json({ message: 'No tiene permisos para eliminar el post!' });
     }
   } catch (e) {
     return res.status(400).json(e);
