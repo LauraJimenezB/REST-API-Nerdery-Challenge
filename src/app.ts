@@ -8,4 +8,4 @@ const server = app.listen(PORT, () => {
   console.log(`App listening at http://localhost:${PORT}`);
 });
 
-export { server }
+export { server };

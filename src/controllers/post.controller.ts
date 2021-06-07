@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { PrismaClient} from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import {
   notFound,
   validatePostWithoutUser,
@@ -39,7 +39,17 @@ export const createSinglePost = async (req: Request, res: Response): Promise<Res
     } catch (e) {
         return res.status(400).json(e)
     }
-}
+};
+
+export const createSinglePost = async (
+  req: Request,
+  res: Response,
+): Promise<Response<'json'>> => {
+  try {
+    const { userId } = req.params;
+    const { title, content, id } = req.body;
+    const userExists = await validateUser(userId);
+
 
 export const getSinglePost = async (req: Request, res: Response): Promise<Response<"json">> => {
     try {
@@ -58,7 +68,7 @@ export const getSinglePost = async (req: Request, res: Response): Promise<Respon
     } catch (e) {
         return res.status(400).json(e)
     }
-}
+};
 
 export const updateSinglePost = async (req: Request, res: Response): Promise<Response<"json">> => {
     try {
@@ -82,7 +92,7 @@ export const updateSinglePost = async (req: Request, res: Response): Promise<Res
     } catch (e) {
         return res.status(400).json(e)
     }
-}
+};
 
 export const deleteSinglePost = async (req: Request, res: Response): Promise<Response<"json">> => {
     try {

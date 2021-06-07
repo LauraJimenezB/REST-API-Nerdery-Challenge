@@ -1,50 +1,49 @@
-import { Prisma, PrismaClient} from '@prisma/client'
+import { Prisma, PrismaClient } from '@prisma/client';
 import express from 'express';
 import request from 'supertest';
 import { app } from '../server';
-import { server } from '../app'
-const prisma = new PrismaClient()
-import { newToken } from '../helpers/auth'
-
+import { server } from '../app';
+const prisma = new PrismaClient();
+import { newToken } from '../helpers/auth';
 
 let token: string;
 
-beforeEach( async() => {
-  await prisma.user.deleteMany()
-  await prisma.post.deleteMany()
-  await prisma.comments.deleteMany()
+beforeEach(async () => {
+  await prisma.user.deleteMany();
+  await prisma.post.deleteMany();
+  await prisma.comments.deleteMany();
   const user1 = await prisma.user.create({
     data: {
       id: 1,
-      username: "example",
-      email: "example@gmail.com",
-      password: "$2a$10$SFUotjg8JHxyMTe5iQed8.CkcoZeVrYDB3TGMWFC.bteiujYRUZOO",
+      username: 'example',
+      email: 'example@gmail.com',
+      password: '$2a$10$SFUotjg8JHxyMTe5iQed8.CkcoZeVrYDB3TGMWFC.bteiujYRUZOO',
       posts: {
         create: [
           {
             id: 1,
-            title: "POST #1",
-            content: "Content of the first post",
+            title: 'POST #1',
+            content: 'Content of the first post',
           },
           {
             id: 2,
-            title: "POST #2",
-            content: "Content of the second post",
+            title: 'POST #2',
+            content: 'Content of the second post',
             comments: {
               create: [
                 {
                   id: 1,
                   authorId: 1,
-                  content: "Short comment",
-                }
-              ]
-            }
+                  content: 'Short comment',
+                },
+              ],
+            },
           },
-        ]
-      }
+        ],
+      },
     },
   });
-  token= newToken(user1);
+  token = newToken(user1);
   await prisma.user.create({
     data: {
       id: 2,
@@ -53,18 +52,20 @@ beforeEach( async() => {
       password: "password"
     },
   });
-})
+});
+
 
 describe("Test GET /users", () => {
   test("It should return a JSON of all users", async() => {
     const jwt = `Bearer ${token}`
     await request(app)
-        .get('/api/users')
-        .set('Authorization', jwt)
-        .set('Accept', 'application/json')
-        .expect('Content-Type', /json/)
-        .expect(200)
+      .get('/api/users')
+      .set('Authorization', jwt)
+      .set('Accept', 'application/json')
+      .expect('Content-Type', /json/)
+      .expect(200);
   });
+
   test("It should return 2 users", async() => {
     const jwt = `Bearer ${token}`
     const response = await request(app).get('/api/users').set('Authorization', jwt)
@@ -79,6 +80,7 @@ describe("Test GET /users", () => {
   }); */
 });
 
+
 describe("Test GET /users/:userId", () => {
   test("It should return the user called with the id", async() => {
     const jwt = `Bearer ${token}`
@@ -92,8 +94,9 @@ describe("Test GET /users/:userId", () => {
     const jwt = `Bearer ${token}`
     const response = await request(app).get(`/api/users/${userId}`).set('Authorization', jwt)
     expect(response.status).toBe(404)
+
     expect(response.body).toEqual({
-      statusCode: 404, 
+      statusCode: 404,
       message: `User with ID ${userId} not found`,
       error: "Bad Request"
     })
@@ -103,6 +106,7 @@ describe("Test GET /users/:userId", () => {
 describe("Test PATCH /users/:userId", () => {
   test("It should return the updated user: set fullname & bio", async() => {
     const jwt = `Bearer ${token}`
+
     const response = await request(app)
       .patch('/api/users/1')
       .set('Authorization', jwt)
@@ -162,6 +166,7 @@ describe("Test DELETE users/:id", () => {
 
     const response = await request(app).get('/api/users').set('Authorization', jwt)
     expect(response.body).toHaveLength(1)
+
   });
   /* test("It should return ERROR: not authorized", async() => {
     await request(app)
@@ -191,17 +196,18 @@ describe("Test /api/posts endpoint", () => {
       .post('/api/posts')
       .set('Authorization', jwt)
       .send({
-        title: "POST #3",
-        content: "Content of the third post"
+        title: 'POST #3',
+        content: 'Content of the third post',
       })
       .expect(200)
       .expect('Content-Type', /application\/json/)
     const response = await request(app).get('/api/posts').set('Authorization', jwt)
     expect(response.body).toHaveLength(3)
     expect(response.body[response.body.length-1]).toBe(1)
+
   });
-  test("It should delete all posts of a user", async() => {
-    const jwt = `Bearer ${token}`
+  test('It should delete all posts of a user', async () => {
+    const jwt = `Bearer ${token}`;
     await request(app)
       .delete('/api/posts')
       .set('Authorization', jwt)
@@ -227,36 +233,36 @@ describe("Test posts/ endpoint", () => {
   
 });
 
-describe("Test users/:userId/posts/:postId endpoint", () => {
-  test("It should get an specific post of a user", async() => {
-    const jwt = `Bearer ${token}`
+describe('Test users/:userId/posts/:postId endpoint', () => {
+  test('It should get an specific post of a user', async () => {
+    const jwt = `Bearer ${token}`;
     app.use(express.json());
     const response = await request(app).get('/api/posts/2').set('Authorization', jwt)
     expect(response.body.title).toBe('POST #2')
   });
-  test("It should update an specific post of a user", async() => {
-    const jwt = `Bearer ${token}`
+  test('It should update an specific post of a user', async () => {
+    const jwt = `Bearer ${token}`;
     app.use(express.json());
     const response = await request(app)
       .patch('/api/posts/1')
       .set('Authorization', jwt)
       .send({
-        title: "Edited title",
-        content: "new content"
+        title: 'Edited title',
+        content: 'new content',
       })
       .expect(200)
-      .expect('Content-Type', /application\/json/)
-    expect(response.body.title).toBe('Edited title')
+      .expect('Content-Type', /application\/json/);
+    expect(response.body.title).toBe('Edited title');
   });
-  test("It should delete an specific post of a user", async() => {
-    const jwt = `Bearer ${token}`
+  test('It should delete an specific post of a user', async () => {
+    const jwt = `Bearer ${token}`;
     app.use(express.json());
     const response = await request(app)
       .delete('/api/posts/1')
       .set('Authorization', jwt)
       .expect(200)
-      .expect('Content-Type', /application\/json/)
-    expect(response.body.title).toBe('POST #1')
+      .expect('Content-Type', /application\/json/);
+    expect(response.body.title).toBe('POST #1');
   });
 });
 
@@ -326,3 +332,4 @@ afterAll( async() => {
    await prisma.$disconnect()
    server.close()
 })
+

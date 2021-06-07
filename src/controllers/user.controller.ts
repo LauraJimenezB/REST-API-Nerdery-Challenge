@@ -7,21 +7,27 @@ import {
 
 const prisma = new PrismaClient();
 
-export const getUsers = async (req: Request, res: Response): Promise<Response<"json">> => {
+export const getUsers = async (
+  req: Request,
+  res: Response,
+): Promise<Response<'json'>> => {
   try {
-    const users = await prisma.user.findMany()
-    return res.json(users)
+    const users = await prisma.user.findMany();
+    return res.json(users);
   } catch (e) {
-    return res.status(400).json(e)
+    return res.status(400).json(e);
   }
-}
+};
 
-export const getUser = async(req: Request, res: Response): Promise<Response<"json">> => {
+export const getUser = async (
+  req: Request,
+  res: Response,
+): Promise<Response<'json'>> => {
   try {
     const { userId } = req.params;
     // console.log('id', id);
     // console.log('req.body.user', req.body.user.id);
-    
+
     // if( id != req.body.user.id){
     //   return res.status(400).json({ message: 'no puedes acceder a otros uausrios!'})
     // }
@@ -36,14 +42,18 @@ export const getUser = async(req: Request, res: Response): Promise<Response<"jso
     } else {
       return res.status(404).json(notFound('User', userId));
     }
-  } catch(e) {
-    return res.status(400).json(e)
+  } catch (e) {
+    return res.status(400).json(e);
   }
-}
+};
 
-export const deleteUser = async (req: Request, res: Response): Promise<Response<"json">> => {
-  try{
+export const deleteUser = async (
+  req: Request,
+  res: Response,
+): Promise<Response<'json'>> => {
+  try {
     const { userId } = req.params;
+    
     const userExists = await validateUser(userId);
     if (userExists) {
       const user = await prisma.user.delete({
@@ -56,15 +66,18 @@ export const deleteUser = async (req: Request, res: Response): Promise<Response<
       return res.status(404).json(notFound('User', userId));
     }
   } catch (e) {
-    return res.status(400).json(e)
+    return res.status(400).json(e);
   }
-}
+};
 
-export const updateUser = async (req: Request, res: Response): Promise<Response<"json">>   => {
+export const updateUser = async (
+  req: Request,
+  res: Response,
+): Promise<Response<'json'>> => {
   try {
-    const { userId } = req.params
-    const { fullname, bio, emailIsPublic, fullnameIsPublic } = req.body
-    const userExists = await validateUser(userId)
+    const { userId } = req.params;
+    const { fullname, bio, emailIsPublic, fullnameIsPublic } = req.body;
+    const userExists = await validateUser(userId);
     if (userExists) {
       const user = await prisma.user.update({
         where: {
@@ -79,9 +92,9 @@ export const updateUser = async (req: Request, res: Response): Promise<Response<
       });
       return res.json(user);
     } else {
-      return res.status(404).json(notFound('User', userId))
+      return res.status(404).json(notFound('User', userId));
     }
   } catch (e) {
-    return res.status(400).json(e)
+    return res.status(400).json(e);
   }
-}
+};

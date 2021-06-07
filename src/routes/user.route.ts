@@ -4,16 +4,10 @@ import { getUsers, getUser, updateUser, deleteUser } from '../controllers/user.c
 const router: Router = Router();
 
 // /api/user
-router
-  .route('/')
-  .get(getUsers)
+router.route('/').get(getUsers);
 
 // /api/user/:id
-router
-  .route('/:userId')
-  .get(getUser)
-  .patch(updateUser)
-  .delete(deleteUser)
+router.route('/:userId').get(getUser).patch(updateUser).delete(deleteUser);
 
 
 export {router}
