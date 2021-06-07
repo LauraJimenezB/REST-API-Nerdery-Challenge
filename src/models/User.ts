@@ -1,9 +1,9 @@
 import bcrypt from 'bcryptjs';
 
 export interface IUser {
+  id: number;
   username: string;
   email: string;
-  password: string;
 }
 
 export const encryptPassword = async (password: string): Promise<string> => {
