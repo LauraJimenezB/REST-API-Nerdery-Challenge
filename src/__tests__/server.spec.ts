@@ -80,7 +80,6 @@ describe("Test GET /users", () => {
   }); */
 });
 
-
 describe("Test GET /users/:userId", () => {
   test("It should return the user called with the id", async() => {
     const jwt = `Bearer ${token}`
@@ -203,7 +202,7 @@ describe("Test /api/posts endpoint", () => {
       .expect('Content-Type', /application\/json/)
     const response = await request(app).get('/api/posts').set('Authorization', jwt)
     expect(response.body).toHaveLength(3)
-    expect(response.body[response.body.length-1]).toBe(1)
+    expect(response.body[response.body.length-1].authorId).toBe(1)
 
   });
   test('It should delete all posts of a user', async () => {

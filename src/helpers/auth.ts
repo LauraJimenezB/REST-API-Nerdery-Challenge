@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
+import { IUser, encryptPassword, validatePassword } from '../models/User';
 
 const prisma = new PrismaClient();
 
@@ -76,7 +77,7 @@ export const signin = async (req: Request, res: Response) => {
   }
 };
 
-export const protect = async(
+export const protect = async (
   req: Request,
   res: Response,
   next: NextFunction,
