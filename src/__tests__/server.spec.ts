@@ -84,7 +84,7 @@ describe("Test users/:id endpoint", () => {
   });
 });
 
-
+/* 
 describe("Test users/:userId/posts endpoint", () => {
   test("It should get all the posts of a user", async() => {
     app.use(express.json());
@@ -216,7 +216,7 @@ describe("Test users/:userId/posts/:postId/comments/:commentId endpoint", () => 
     expect(response.body.content).toBe('Short comment')
   });
 });
-
+ */
 afterAll( async() => {
    await prisma.$disconnect()
    server.close()
