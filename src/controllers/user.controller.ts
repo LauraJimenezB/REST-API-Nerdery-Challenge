@@ -16,9 +16,16 @@ export const getUsers = async (req: Request, res: Response): Promise<Response<"j
   }
 }
 
-export const getUser = async(req: Request, res: Response) => {
+export const getUser = async(req: Request, res: Response): Promise<Response<"json">> => {
   try {
     const { userId } = req.params;
+    // console.log('id', id);
+    // console.log('req.body.user', req.body.user.id);
+    
+    // if( id != req.body.user.id){
+    //   return res.status(400).json({ message: 'no puedes acceder a otros uausrios!'})
+    // }
+    //console.log('req.params', req.params)
     const user = await prisma.user.findUnique({
       where: {
         id: Number(userId),
@@ -34,7 +41,7 @@ export const getUser = async(req: Request, res: Response) => {
   }
 }
 
-export const deleteUser = async (req: Request, res: Response) => {
+export const deleteUser = async (req: Request, res: Response): Promise<Response<"json">> => {
   try{
     const { userId } = req.params;
     const userExists = await validateUser(userId);
@@ -53,7 +60,7 @@ export const deleteUser = async (req: Request, res: Response) => {
   }
 }
 
-export const updateUser = async (req: Request, res: Response)  => {
+export const updateUser = async (req: Request, res: Response): Promise<Response<"json">>   => {
   try {
     const { userId } = req.params
     const { fullname, bio, emailIsPublic, fullnameIsPublic } = req.body

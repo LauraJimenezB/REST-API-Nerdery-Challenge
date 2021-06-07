@@ -4,13 +4,16 @@ import request from 'supertest';
 import { app } from '../server';
 import { server } from '../app'
 const prisma = new PrismaClient()
+import { newToken } from '../helpers/auth'
 
+
+let token: string;
 
 beforeEach( async() => {
   await prisma.user.deleteMany()
   await prisma.post.deleteMany()
   await prisma.comments.deleteMany()
-  await prisma.user.create({
+  const user1 = await prisma.user.create({
     data: {
       id: 1,
       username: "example",
@@ -41,7 +44,8 @@ beforeEach( async() => {
       }
     },
   });
-  await prisma.user.create({
+  token= newToken(user1);
+  const user2 = await prisma.user.create({
     data: {
       id: 2,
       username: "abc",
@@ -53,28 +57,34 @@ beforeEach( async() => {
 
 describe("Test /users endpoint", () => {
   test("It should return a JSON of all users", async() => {
+    const jwt = `Bearer ${token}`
     await request(app)
-        .get('/users')
+        .get('/api/users')
+        .set('Authorization', jwt)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
         .expect(200)
   });
   test("It should return 2 users", async() => {
-    const response = await request(app).get('/users')
+    const jwt = `Bearer ${token}`
+    const response = await request(app).get('/api/users').set('Authorization', jwt)
+    console.log(response)
     expect(response.body).toHaveLength(2)
   });
 });
 
 describe("Test users/:id endpoint", () => {
   test("It should return the user called with the id", async() => {
-    const response = await request(app).get('/users/1')
+    const jwt = `Bearer ${token}`
+    const response = await request(app).get('/api/users/1').set('Authorization', jwt)
     expect(response.body.id).toBe(1)
     expect(response.body.username).toBe('example')
     expect(response.body.email).toBe('example@gmail.com')
   });
   test("It should throw an error when the user id does not exists", async() => {
     const userId = 123
-    const response = await request(app).get(`/users/${userId}`)
+    const jwt = `Bearer ${token}`
+    const response = await request(app).get(`/api/users/${userId}`).set('Authorization', jwt)
     expect(response.status).toBe(404)
     expect(response.body).toEqual({
       statusCode: 404, 

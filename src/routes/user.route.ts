@@ -5,12 +5,12 @@ const router: Router = Router();
 
 // /api/user
 router
-  .route('/api')
+  .route('/')
   .get(getUsers)
 
 // /api/user/:id
 router
-  .route('/api/:userId')
+  .route('/:userId')
   .get(getUser)
   .patch(updateUser)
   .delete(deleteUser)

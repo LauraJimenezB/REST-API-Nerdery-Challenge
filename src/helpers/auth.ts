@@ -11,9 +11,22 @@ export interface IPayload {
   exp: number;
 }
 
+interface IUser {
+  id: number,
+  username: string,
+  email: string,
+  password: string
+}
+
+export const newToken = (user: IUser): string => {
+  return jwt.sign({ id: user.id }, process.env.TOKEN_SECRET || 'secret', {
+    expiresIn: '1d'
+  })
+}
+
 export const verifyToken = async (token: string): Promise<IPayload> => {
   const payload = (await jwt.verify(
-    token,
+    token.trim(),
     process.env.TOKEN_SECRET || 'secret',
   )) as IPayload;
 
@@ -21,27 +34,18 @@ export const verifyToken = async (token: string): Promise<IPayload> => {
   return payload;
 };
 
-export const signup = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  const user = Prisma.validator<Prisma.UserArgs>()({
-    select: {
-      username: req.body.username,
-      email: req.body.email,
-      password: req.body.password,
-    }, 
-  });
-
-  user.select.password = await encryptPassword(user.select.password);
+export const signup = async (req: Request, res: Response) => {
+  if (!req.body.email || !req.body.password) {
+    return res.status(400).send({ message: 'Email and password required' });
+  }
 
   try {
+    req.body.password = await encryptPassword(req.body.password);
     const savedUser = await prisma.user.create({
       data: {
-        username: user.select.username,
-        email: user.select.email,
-        password: user.select.password,
+        username: req.body.username,
+        email: req.body.email,
+        password: req.body.password,
       },
     });
 
@@ -49,18 +53,22 @@ export const signup = async (
     const token: string = jwt.sign(
       { id: savedUser.id, username: savedUser.username, role: savedUser.role },
       process.env.TOKEN_SECRET || 'secret',
+      {
+        expiresIn: '1d',
+      },
     );
 
     //console.log(savedUser)
-    res.header('auth-token', token).json(savedUser);
+    return res.status(200).send({ token });
   } catch (e) {
-    res.status(500).json('Unique constraint failed on the field email');
+    console.log(e);
+    return res.status(400).end();
   }
 };
 
 export const signin = async (req: Request, res: Response) => {
   if (!req.body.email || !req.body.password) {
-    return res.status(400).json('Email and password required')
+    return res.status(400).json('Email and password required');
   }
 
   const user = await prisma.user.findUnique({
@@ -68,23 +76,28 @@ export const signin = async (req: Request, res: Response) => {
       email: req.body.email,
     },
   });
+
   if (!user) return res.status(400).json('Email or password is wrong');
   const isPasswordMatching: boolean = await validatePassword(
     req.body.password,
     user.password,
   );
 
-  if (!isPasswordMatching) return res.status(400).json('Invalid password');
+  try {
+    if (!isPasswordMatching) return res.status(400).json('Invalid password');
 
-  const token: string = jwt.sign(
-    { id: user.id, username: user.username, role: user.role },
-    process.env.TOKEN_SECRET || 'secret',
-    {
-      expiresIn: '1d',
-    },
-  );
-
-  return res.header('auth-token', token).json(user);
+    const token: string = jwt.sign(
+      { id: user.id, username: user.username, role: user.role },
+      process.env.TOKEN_SECRET || 'secret',
+      {
+        expiresIn: '1d',
+      },
+    );
+    return res.status(201).send({ token });
+  } catch (e) {
+    console.error(e);
+    return res.status(400).send({ message: 'Not auth' });
+  }
 };
 
 
@@ -92,26 +105,33 @@ export const profile = async (
   req: Request,
   res: Response,
   next: NextFunction,
-) : Promise<any> => {
-  const token = req.header('auth-token');
-  if (!token) return res.status(401).json('Access denied');
+) => {
+  if (!req.headers.authorization) {
+    return res.status(401).end()
+  }
+
+  const token = req.headers.authorization.split('Bearer')[1]
+
+  if (!token) {
+    return res.status(401).end()
+  }
 
   try {
+    
     const payload = await verifyToken(token);
+
     const user = await prisma.user.findUnique({
       where: {
         id: payload.id,
       },
     });
-    if (!user) return res.status(404).json('No user found');
     //console.log('veamos...',user)
-    res.status(200).json({ id: user.id, username: user.username, email: user.email });
+    //res.status(200).send({user});
     //res.json(user);
-    next()
+    req.body.user = user;
+    next();
   } catch (e) {
-    //console.error(e);
+    console.error(e);
     return res.status(401).json(e);
   }
-
-  next();
 };
