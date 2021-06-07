@@ -42,13 +42,19 @@ describe('Creation JWT and Authentication: ', () => {
     });
   });
 
-  test.skip('creates user and and sends new token from user', async () => {
+  test.only('creates user and and sends new token from user', async () => {
     const response = await request(app)
       .post('/signup')
-      .send({email: 'john', password: 'password'})
-    console.log(response);
+      .send({ username: 'test', email: 'test@test.com', password: 'password' });
 
     expect(response.status).toBe(200);
-    //expect(response.body).toBe('Email and password required');
+  });
+
+  test(`can't creates user without username field`, async () => {
+    const response = await request(app)
+      .post('/signup')
+      .send({ email: 'john@test.com', password: 'password' });
+
+    expect(response.status).toBe(400);
   });
 });

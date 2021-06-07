@@ -44,7 +44,7 @@ export const signup = async (req: Request, res: Response) => {
     const token: string = newToken(savedUser);
     return res.status(200).send({ token });
   } catch (e) {
-    console.log(e);
+    //console.log(e);
     return res.status(400).end();
   }
 };
