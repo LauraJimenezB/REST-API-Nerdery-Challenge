@@ -1,17 +1,25 @@
 import { request, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { notFound, validateUser, validatePost, validatePostWithoutUser } from '../helpers/route_validators';
+import {
+  notFound,
+  validateUser,
+  validatePost,
+  validatePostWithoutUser,
+} from '../helpers/route_validators';
 
 const prisma = new PrismaClient();
 
-export const getAllPosts = async (req: Request, res: Response): Promise<Response<"json">> => {
-    try {
-        const allPosts = await prisma.post.findMany();
-        return res.send(allPosts);
-    } catch (e) {
-        return res.status(500).json(e)
-    }
-}
+export const getAllPosts = async (
+  req: Request,
+  res: Response,
+): Promise<Response<'json'>> => {
+  try {
+    const allPosts = await prisma.post.findMany();
+    return res.send(allPosts);
+  } catch (e) {
+    return res.status(500).json(e);
+  }
+};
 
 export const createSinglePost = async (
   req: Request,
@@ -46,67 +54,66 @@ export const getSinglePost = async (
     const userId = req.body.user.id;
     const userExists = await validateUser(userId);
     if (userExists) {
-    const postExists = await validatePost(userId, postId);
-    if (postExists) {
-        const post = await prisma.post.findFirst({
-        where: {
+      const postExists = await validatePost(userId, postId);
+      if (postExists) {
+        const post = await prisma.post.findUnique({
+          where: {
             id: Number(postId),
-            authorId: Number(userId),
-        },
+          },
         });
         return res.json(post);
-    } else {
+      } else {
         return res.status(404).json(notFound('Post', postId));
-    }
+      }
     } else {
-    return res.status(404).json(notFound('User', userId));
+      return res.status(404).json(notFound('User', userId));
     }
   } catch (e) {
     return res.status(500).json(e);
   }
 };
 
-const getValidatePost = async (postId: string) => {
-    const result = await prisma.post.findUnique({
-      where: {
-        id: Number(postId),
-      },
-    });
-    if (result) return result;
-    else throw new Error(`${postId} not exist`);
-  };
+export const getValidatePost = async (postId: string) => {
+  const result = await prisma.post.findUnique({
+    where: {
+      id: Number(postId),
+    },
+  });
+  if (result) return result;
+  else throw new Error(`${postId} not exist`);
+};
 
-  export const updateSinglePost = async (
-    req: Request,
-    res: Response,
-  ): Promise<Response<'json'>> => {
-    try {
-      const { postId } = req.params;
-      const { title, content } = req.body;
-      const postExists = await validatePostWithoutUser(postId);
-      if (!postExists) {
-        return res.status(404).json(notFound('Post', postId));
+export const updateSinglePost = async (
+  req: Request,
+  res: Response,
+): Promise<Response<'json'>> => {
+  try {
+    const { postId } = req.params;
+    const { title, content } = req.body;
+    const postExists = await validatePostWithoutUser(postId);
+    if (!postExists) {
+      return res.status(404).json(notFound('Post', postId));
+    } else {
+      const getPost = await getValidatePost(postId);
+      if (getPost.authorId == req.body.user.id) {
+        const post = await prisma.post.update({
+          where: {
+            id: Number(postId),
+          },
+          data: {
+            title: title,
+            content: content,
+          },
+        });
+        return res.json(post);
       } else {
-        const getPost = await getValidatePost(postId);
-        if (getPost.authorId == req.body.user.id) {
-          const post = await prisma.post.update({
-            where: {
-              id: Number(postId),
-            },
-            data: {
-              title: title,
-              content: content,
-            },
-          });
-          return res.json(post);
-        } else {
-          return res.status(401).json('No authorizated to update this post!');
-        }
-      } 
-    } catch (e) {
-      return res.status(500).json(e);
+        return res.status(401).json('No authorizated to update this post!');
+      }
     }
-  };
+  } catch (e) {
+    return res.status(500).json(e);
+  }
+};
 
 export const deleteSinglePost = async (
   req: Request,
@@ -114,29 +121,27 @@ export const deleteSinglePost = async (
 ): Promise<Response<'json'>> => {
   try {
     const { postId } = req.params;
-    const userId = req.body.user.id
-    const postExists = await validatePost(userId, postId);
+    const userId = req.body.user.id;
+    const postExists = await validatePostWithoutUser(postId);
     if (!postExists) {
-        return res.status(404).json(notFound('Post', postId));
+      return res.status(404).json(notFound('Post', postId));
     } else {
-        const getPost = await getValidatePost(postId);
-        if (getPost.authorId == req.body.user.id) {
-            const post = await prisma.post.delete({
-            where: {
-                id: Number(postId),
-            },
-            });
-            return res.json(post);
-        } else {
-          return res.status(401).json('No authorizated to update this post!');
-        }
-    } 
+      const getPost = await getValidatePost(postId);
+      if (getPost.authorId == userId) {
+        const post = await prisma.post.delete({
+          where: {
+            id: Number(postId),
+          },
+        });
+        return res.json(post);
+      } else {
+        return res.status(401).json('No authorizated to delete this post!');
+      }
+    }
   } catch (e) {
     return res.status(500).json(e);
   }
 };
-
-
 
 /* export const getPosts = async (
     req: Request,

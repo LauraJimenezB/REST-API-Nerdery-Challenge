@@ -184,8 +184,8 @@ describe("Test /api/posts endpoint", () => {
   test("It should create a post with the user id", async() => {
     const jwt = `Bearer ${token}`;
     app.use(express.json());
-    await request(app)
-      .post('/api/posts')
+    const response = await request(app)
+      .post('/api/posts/')
       .set('Authorization', jwt)
       .send({
         title: 'POST #3',
@@ -193,9 +193,9 @@ describe("Test /api/posts endpoint", () => {
       })
       .expect(200)
       .expect('Content-Type', /application\/json/)
-    const response = await request(app).get('/api/posts').set('Authorization', jwt)
-    expect(response.body).toHaveLength(3)
-    expect(response.body[response.body.length-1].authorId).toBe(1)
+
+    expect(response.body).toHaveProperty('id')
+    expect(response.body.authorId).toBe(1)
   });
   /* test("It should get all the posts of a user", async() => {
     app.use(express.json())
