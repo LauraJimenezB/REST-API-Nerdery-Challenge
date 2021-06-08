@@ -1,23 +1,35 @@
 import { Router } from 'express';
-import { createSinglePost, getSinglePost, updateSinglePost, deleteSinglePost } from '../controllers/post.controller';
-import { createComment, getSingleComment, updateSingleComment, deleteSingleComment } from '../controllers/comment.controller';
+import {
+  createSinglePost,
+  getSinglePost,
+  updateSinglePost,
+  deleteSinglePost,
+} from '../controllers/post.controller';
+import {
+  createComment,
+  getSingleComment,
+  updateSingleComment,
+  deleteSingleComment,
+} from '../controllers/comment.controller';
 
 const router: Router = Router();
 
 // /api/post
 router
   .route('/')
-  .post(createSinglePost)
+  .post(createSinglePost);
+  //.get(getPosts)
 
 router
   .route('/:postId')
   .get(getSinglePost)
   .patch(updateSinglePost)
-  .delete(deleteSinglePost)
+  .delete(deleteSinglePost);
 
 router
   .route('/:postId/comments')
-  .post(createComment)
+  .post(createComment);
+  //.get(getComments);
 
 router
   .route('/:postId/comments/:commentId')
@@ -25,5 +37,4 @@ router
   .patch(updateSingleComment)
   .delete(deleteSingleComment)
 
-  export { router }
-
+export { router };

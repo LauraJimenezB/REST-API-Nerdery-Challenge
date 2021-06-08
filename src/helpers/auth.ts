@@ -26,23 +26,38 @@ export const verifyToken = async (token: string): Promise<IPayload> => {
   return payload;
 };
 
+const notRepiteEmail = async (email: string): Promise<boolean> => {
+  const user = await prisma.user.findUnique({
+    where: {
+      email: email,
+    },
+  });
+  if (!user) return true;
+  return false;
+};
+
 export const signup = async (req: Request, res: Response) => {
   if (!req.body.email || !req.body.password) {
     return res.status(400).json('Email and password required');
   }
-
+ 
   try {
-    req.body.password = await encryptPassword(req.body.password);
-    const savedUser = await prisma.user.create({
-      data: {
-        username: req.body.username,
-        email: req.body.email,
-        password: req.body.password,
-      },
-    });
+    if ( await notRepiteEmail(req.body.email)) {
+      req.body.password = await encryptPassword(req.body.password);
+      const savedUser = await prisma.user.create({
+        data: {
+          username: req.body.username,
+          email: req.body.email,
+          password: req.body.password,
+        },
+      });
 
-    const token: string = newToken(savedUser);
-    return res.status(200).send({ token });
+      const token: string = newToken(savedUser);
+      return res.status(200).send({ token });
+
+    } else {
+      return res.status(400).json('The email already exists');
+    }
   } catch (e) {
     //console.log(e);
     return res.status(400).end();
@@ -76,6 +91,8 @@ export const signin = async (req: Request, res: Response) => {
     return res.status(400).json('Not auth');
   }
 };
+
+//manejar cuando se repite el correo al login
 
 export const protect = async (
   req: Request,

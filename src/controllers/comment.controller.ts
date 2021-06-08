@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { PrismaClient} from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import {
   validateUser,
   validatePost,
@@ -17,7 +17,7 @@ export const getAllComments = async (req: Request, res: Response): Promise<Respo
     } catch (e) {
         return res.status(500).json(e)
     }
-}
+};
 
 export const createComment = async (req: Request, res: Response): Promise<Response<"json">> => {
     try {
@@ -45,7 +45,7 @@ export const createComment = async (req: Request, res: Response): Promise<Respon
     } catch (e) {
         return res.status(500).json(e)
     }
-}
+};
 
 export const getSingleComment = async (req: Request, res: Response): Promise<Response<"json">> => {
     try {
@@ -70,12 +70,12 @@ export const getSingleComment = async (req: Request, res: Response): Promise<Res
                 return res.status(404).json(notFound('Post', postId));
             }
         } else {
-            return res.status(404).json(notFound('User', userId));
+          return res.status(404).json(notFound('Comment', commentId));
         }
     } catch (e) {
         return res.status(500).json(e)
     }
-}
+};
 
 const getValidateComment = async (commentId: string) => {
     const result = await prisma.comments.findUnique({
@@ -115,7 +115,7 @@ export const updateSingleComment = async (req: Request, res: Response): Promise<
     } catch (e) {
         return res.status(500).json(e)
     }
-}
+};
 
 export const deleteSingleComment = async (req: Request, res: Response): Promise<Response<"json">> => {
     try {
@@ -140,7 +140,7 @@ export const deleteSingleComment = async (req: Request, res: Response): Promise<
                 return res.status(404).json(notFound('Post', postId));
             }
         } else {
-            return res.status(404).json(notFound('User', userId));
+          return res.status(404).json(notFound('Comment', commentId));
         }
     } catch (e) {
         return res.status(500).json(e)

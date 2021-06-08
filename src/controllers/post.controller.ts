@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { request, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { notFound, validateUser, validatePost, validatePostWithoutUser } from '../helpers/route_validators';
 
@@ -14,29 +14,28 @@ export const getAllPosts = async (req: Request, res: Response): Promise<Response
 }
 
 export const createSinglePost = async (
-    req: Request,
-    res: Response,
-  ): Promise<Response<'json'>> => {
-    try {
-      const { title, content, id } = req.body;
-      console.log(req.body)
-      if (req.body.user.id) {
-        const post = await prisma.post.create({
-          data: {
-            id,
-            title,
-            content,
-            author: { connect: { id: Number(req.body.user.id) } },
-          },
-        });
-        return res.send(post);
-      } else {
-        return res.status(401).json('No authorizated to create a post!');
-      }
-    } catch (e) {
-      return res.status(400).json(e);
+  req: Request,
+  res: Response,
+): Promise<Response<'json'>> => {
+  try {
+    const { title, content, id } = req.body;
+    if (req.body.user.id) {
+      const post = await prisma.post.create({
+        data: {
+          id,
+          title,
+          content,
+          author: { connect: { id: Number(req.body.user.id) } },
+        },
+      });
+      return res.send(post);
+    } else {
+      return res.status(401).json('No authorizated to create a post!');
     }
-  };
+  } catch (e) {
+    return res.status(500).json(e);
+  }
+};
 
 export const getSinglePost = async (
   req: Request,

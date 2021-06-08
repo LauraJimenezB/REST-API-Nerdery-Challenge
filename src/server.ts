@@ -27,8 +27,6 @@ app.use('/api', protect);
 
 app.use('/api/users', userRouter);
 app.use('/api/posts', postRouter);
-
 app.use('/api/comments', commentRouter);
-
 
 export { app };

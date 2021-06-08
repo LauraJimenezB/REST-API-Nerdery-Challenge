@@ -1,9 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import {
-  validateUser,
-  notFound,
-} from '../helpers/route_validators';
+import { validateUser, notFound } from '../helpers/route_validators';
 
 const prisma = new PrismaClient();
 
@@ -53,7 +50,7 @@ export const deleteUser = async (
 ): Promise<Response<'json'>> => {
   try {
     const { userId } = req.params;
-    
+
     const userExists = await validateUser(userId);
     if (userExists) {
       const user = await prisma.user.delete({
@@ -84,8 +81,8 @@ export const updateUser = async (
           id: Number(userId),
         },
         data: {
-          emailIsPublic: (emailIsPublic =="true"),
-          fullnameIsPublic: (fullnameIsPublic =="true"),
+          emailIsPublic: emailIsPublic == 'true',
+          fullnameIsPublic: fullnameIsPublic == 'true',
           fullname: fullname,
           bio: bio,
         },
