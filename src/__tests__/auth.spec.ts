@@ -1,14 +1,14 @@
+import { PrismaClient } from '@prisma/client';
 import request from 'supertest';
 import { app } from '../server';
-import {
-  newToken,
-  verifyToken,
-  signin,
-  signup,
-  protect,
-  IPayload,
-} from '../helpers/auth';
+import { newToken, verifyToken, IPayload } from '../helpers/auth';
 import jwt from 'jsonwebtoken';
+
+const prisma = new PrismaClient();
+
+// beforeEach( async () => {
+//   await prisma.user.deleteMany();
+// });
 
 describe('Creation JWT and Authentication: ', () => {
   describe('newToken', () => {
@@ -42,7 +42,7 @@ describe('Creation JWT and Authentication: ', () => {
     });
   });
 
-  test.only('creates user and and sends new token from user', async () => {
+  test.skip('creates user and and sends new token from user', async () => {
     const response = await request(app)
       .post('/signup')
       .send({ username: 'test', email: 'test@test.com', password: 'password' });
@@ -56,5 +56,41 @@ describe('Creation JWT and Authentication: ', () => {
       .send({ email: 'john@test.com', password: 'password' });
 
     expect(response.status).toBe(400);
+  });
+
+  test('signup with the email already exists', async () => {
+    const response = await request(app)
+      .post('/signup')
+      .send({ username: 'test', email: 'test@test.com', password: 'password' });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toBe('The email already exists');
+  });
+});
+
+describe('signin', () => {
+  test(`login with email and password and return a new token`, async () => {
+    const response = await request(app)
+      .post('/signin')
+      .send({ email: 'test@test.com', password: 'password' });
+
+    expect(response.status).toBe(201);
+    expect(response.body).toHaveProperty('token');
+  });
+
+  test(`not sending email and password`, async () => {
+    const response = await request(app).post('/signin').send();
+
+    expect(response.status).toBe(400);
+    expect(response.body).toBe('Email and password required');
+  });
+
+  test(`invalid password`, async () => {
+    const response = await request(app)
+      .post('/signin')
+      .send({ email: 'test@test.com', password: 'password123' });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toBe('Invalid password');
   });
 });
