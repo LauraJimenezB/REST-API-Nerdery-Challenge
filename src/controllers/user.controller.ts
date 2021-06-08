@@ -12,7 +12,7 @@ export const getUsers = async (
     const users = await prisma.user.findMany();
     return res.json(users);
   } catch (e) {
-    return res.status(400).json(e);
+    return res.status(500).json(e);
   }
 };
 
@@ -26,7 +26,7 @@ export const getUser = async (
     // console.log('req.body.user', req.body.user.id);
 
     // if( id != req.body.user.id){
-    //   return res.status(400).json({ message: 'no puedes acceder a otros uausrios!'})
+    //   return res.status(500).json({ message: 'no puedes acceder a otros uausrios!'})
     // }
     //console.log('req.params', req.params)
     const user = await prisma.user.findUnique({
@@ -40,7 +40,7 @@ export const getUser = async (
       return res.status(404).json(notFound('User', userId));
     }
   } catch (e) {
-    return res.status(400).json(e);
+    return res.status(500).json(e);
   }
 };
 
@@ -63,7 +63,7 @@ export const deleteUser = async (
       return res.status(404).json(notFound('User', userId));
     }
   } catch (e) {
-    return res.status(400).json(e);
+    return res.status(500).json(e);
   }
 };
 
@@ -92,6 +92,6 @@ export const updateUser = async (
       return res.status(404).json(notFound('User', userId));
     }
   } catch (e) {
-    return res.status(400).json(e);
+    return res.status(500).json(e);
   }
 };
