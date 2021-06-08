@@ -4,7 +4,7 @@ import { app } from '../server';
 import { newToken, verifyToken, IPayload } from '../helpers/auth';
 import jwt from 'jsonwebtoken';
 
-const prisma = new PrismaClient();
+//const prisma = new PrismaClient();
 
 // beforeEach( async () => {
 //   await prisma.user.deleteMany();
