@@ -71,13 +71,10 @@ describe("Test GET /users", () => {
     const response = await request(app).get('/api/users').set('Authorization', jwt)
     expect(response.body).toHaveLength(2)
   });
-  /* test("It should return an ERROR: wrong endpoint", async() => {
+  test("It should return an ERROR: wrong endpoint", async() => {
     const jwt = `Bearer ${token}`
-    await request(app)
-        .get('/api/uses')
-        .set('Authorization', jwt)
-        .expect(400)
-  }); */
+    await request(app).get('/api/uses').expect(404).set('Authorization', jwt)
+  });
 });
 
 describe("Test GET /users/:userId", () => {
@@ -176,20 +173,8 @@ describe("Test DELETE users/:id", () => {
 
 
 describe("Test /api/posts endpoint", () => {
-  test("It should get all the posts of a user", async() => {
-    app.use(express.json())
-    const jwt = `Bearer ${token}`
-    await request(app)
-      .get('/api/posts').set('Authorization', jwt)
-      .expect(200)
-      .expect('Content-Type', /application\/json/)
-    const response = await request(app).get('/api/posts').set('Authorization', jwt)
-    expect(response.body).toHaveLength(2)
-    expect(response.body[0].authorId).toBe(1)
-    expect(response.body[1].authorId).toBe(1)
-  }); 
   test("It should create a post with the user id", async() => {
-    const jwt = `Bearer ${token}`
+    const jwt = `Bearer ${token}`;
     app.use(express.json());
     await request(app)
       .post('/api/posts')
@@ -203,9 +188,20 @@ describe("Test /api/posts endpoint", () => {
     const response = await request(app).get('/api/posts').set('Authorization', jwt)
     expect(response.body).toHaveLength(3)
     expect(response.body[response.body.length-1].authorId).toBe(1)
-
   });
-  test('It should delete all posts of a user', async () => {
+  /* test("It should get all the posts of a user", async() => {
+    app.use(express.json())
+    const jwt = `Bearer ${token}`
+    await request(app)
+      .get('/api/posts').set('Authorization', jwt)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+    const response = await request(app).get('/api/posts').set('Authorization', jwt)
+    expect(response.body).toHaveLength(2)
+    expect(response.body[0].authorId).toBe(1)
+    expect(response.body[1].authorId).toBe(1)
+  });  */
+  /* test('It should delete all posts of a user', async () => {
     const jwt = `Bearer ${token}`;
     await request(app)
       .delete('/api/posts')
@@ -214,7 +210,7 @@ describe("Test /api/posts endpoint", () => {
       .expect('Content-Type', /application\/json/)
     const response = await request(app).get('/api/posts').set('Authorization', jwt)
     expect(response.body).toHaveLength(0)
-  });
+  }); */
 });
  
 describe("Test posts/ endpoint", () => {
@@ -267,7 +263,7 @@ describe('Test users/:userId/posts/:postId endpoint', () => {
 
 
 describe("Test /api/posts/:postId/comments endpoint", () => {
-  test("It should get all the posts of a user", async() => {
+  /* test("It should get all the posts of a user", async() => {
     const jwt = `Bearer ${token}`
     app.use(express.json());
     await request(app)
@@ -277,12 +273,12 @@ describe("Test /api/posts/:postId/comments endpoint", () => {
       .expect('Content-Type', /application\/json/)
     const response = await request(app).get('/api/posts/2/comments').set('Authorization', jwt)
     expect(response.body).toHaveLength(1)
-  });
-  /* test("It should create a comment with the user id & post id", async() => {
+  }); */
+    test("It should create a comment with the user id & post id", async() => {
     const jwt = `Bearer ${token}`
     app.use(express.json());
     await request(app)
-      .post('/api/users/1/posts/2/comments')
+      .post('/api/posts/2/comments')
       .set('Authorization', jwt)
       .send({
         id: 2,
@@ -290,23 +286,23 @@ describe("Test /api/posts/:postId/comments endpoint", () => {
       })
       .expect(200)
       .expect('Content-Type', /application\/json/)
-    const response = await request(app).get('/api/users/1/posts/2/comments').set('Authorization', jwt)
-    expect(response.body).toHaveLength(2)
-  }); */
+    const response = await request(app).get('/api/posts/2/comments').set('Authorization', jwt)
+    expect(response.body).toBe(2)
+  });
 });
-/* 
-describe("Test users/:userId/posts/:postId/comments/:commentId endpoint", () => {
+ 
+describe("Test api/:postId/comments/:commentId endpoint", () => {
   test("It should get an specific comments of a post and user", async() => {
     const jwt = `Bearer ${token}`
     app.use(express.json());
-    const response = await request(app).get('/api/users/1/posts/2/comments/1').set('Authorization', jwt)
+    const response = await request(app).get('/api/posts/2/comments/1').set('Authorization', jwt)
     expect(response.body.content).toBe('Short comment')
   });
   test("It should update an specific comment of post and user", async() => {
     const jwt = `Bearer ${token}`
     app.use(express.json());
     const response = await request(app)
-      .patch('/api/users/1/posts/2/comments/1')
+      .patch('/api/posts/2/comments/1')
       .set('Authorization', jwt)
       .send({
         content: "edited comment"
@@ -319,14 +315,14 @@ describe("Test users/:userId/posts/:postId/comments/:commentId endpoint", () => 
     const jwt = `Bearer ${token}`
     app.use(express.json());
     const response = await request(app)
-      .delete('/api/users/1/posts/2/comments/1')
+      .delete('/api/posts/2/comments/1')
       .set('Authorization', jwt)
       .expect(200)
       .expect('Content-Type', /application\/json/)
     expect(response.body.content).toBe('Short comment')
   });
 }); 
- */
+
 afterAll( async() => {
    await prisma.$disconnect()
    server.close()
