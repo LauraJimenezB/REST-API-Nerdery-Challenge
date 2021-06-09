@@ -4,7 +4,7 @@ import request from 'supertest';
 import { app } from '../server';
 import { server } from '../app';
 const prisma = new PrismaClient();
-import { newToken } from '../helpers/auth';
+import { newToken } from '../helpers/handlerPasswordAndToken';
 
 let token: string;
 

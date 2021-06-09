@@ -44,6 +44,7 @@
     "babel-preset-stage-0": "^6.24.1",
     "class-transformer": "^0.4.0",
     "concurrently": "^6.2.0",
+    "dotenv-cli": "^4.0.0",
     "es6-shim": "^0.35.6",
     "eslint": "^7.27.0",
     "eslint-config-prettier": "^8.3.0",
