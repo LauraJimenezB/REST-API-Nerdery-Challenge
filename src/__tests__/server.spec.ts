@@ -55,7 +55,7 @@ beforeEach(async () => {
 });
 
 describe('Test GET /users', () => {
-  test('It should return a JSON of all users', async () => {
+  test.only('It should return a JSON of all users', async () => {
     const jwt = `Bearer ${token}`;
     await request(app)
       .get('/api/users')
