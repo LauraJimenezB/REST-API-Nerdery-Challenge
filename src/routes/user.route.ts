@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import {
-  getUsers,
-  getUser,
+  getAllUsers,
+  getSingleUser,
   updateUser,
   deleteUser,
 } from '../controllers/user.controller';
@@ -9,9 +9,13 @@ import {
 const router: Router = Router();
 
 // /api/user
-router.route('/').get(getUsers);
+router.route('/').get(getAllUsers);
 
 // /api/user/:id
-router.route('/:userId').get(getUser).patch(updateUser).delete(deleteUser);
+router
+  .route('/:userId')
+  .get(getSingleUser)
+  .patch(updateUser)
+  .delete(deleteUser);
 
 export { router };

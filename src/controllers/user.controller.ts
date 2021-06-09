@@ -1,97 +1,48 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
-import { validateUser, notFound } from '../helpers/route_validators';
+import { 
+  getAllUsersService,
+  getSingleUserService,
+  deleteSingleUserService,
+  createSingleUserService,
+  updateSingleUserService
+} from '../services/user.service';
 
-const prisma = new PrismaClient();
-
-export const getUsers = async (
+export const getAllUsers = async (
   req: Request,
   res: Response,
 ): Promise<Response<'json'>> => {
-  try {
-    const users = await prisma.user.findMany();
-    return res.json(users);
-  } catch (e) {
-    return res.status(500).json(e);
-  }
+  const allUsers = await getAllUsersService();
+  return res.status(200).json(allUsers);
 };
 
-export const getUser = async (
+export const getSingleUser = async (
   req: Request,
   res: Response,
 ): Promise<Response<'json'>> => {
-  try {
-    const { userId } = req.params;
-    // console.log('id', id);
-    // console.log('req.body.user', req.body.user.id);
-
-    // if( id != req.body.user.id){
-    //   return res.status(500).json({ message: 'no puedes acceder a otros uausrios!'})
-    // }
-    //console.log('req.params', req.params)
-    const user = await prisma.user.findUnique({
-      where: {
-        id: Number(userId),
-      },
-    });
-    if (user) {
-      return res.json(user);
-    } else {
-      return res.status(404).json(notFound('User', userId));
-    }
-  } catch (e) {
-    return res.status(500).json(e);
-  }
+  const result = await getSingleUserService(req.params.userId);
+  return res.status(200).json(result);
 };
+
+export const createUser = async (
+  req: Request,
+  res: Response,
+): Promise<Response<'json'>> => {
+  const result = await createSingleUserService(req.body);
+  return res.status(200).json(result);
+}
 
 export const deleteUser = async (
   req: Request,
   res: Response,
 ): Promise<Response<'json'>> => {
-  try {
-    const { userId } = req.params;
-
-    const userExists = await validateUser(userId);
-    if (userExists) {
-      const user = await prisma.user.delete({
-        where: {
-          id: Number(userId),
-        },
-      });
-      return res.json(user);
-    } else {
-      return res.status(404).json(notFound('User', userId));
-    }
-  } catch (e) {
-    return res.status(500).json(e);
-  }
+  const result = await deleteSingleUserService(req.params.userId);
+  return res.status(200).json(result);
 };
 
 export const updateUser = async (
   req: Request,
   res: Response,
 ): Promise<Response<'json'>> => {
-  try {
-    const { userId } = req.params;
-    const { fullname, bio, emailIsPublic, fullnameIsPublic } = req.body;
-    const userExists = await validateUser(userId);
-    if (userExists) {
-      const user = await prisma.user.update({
-        where: {
-          id: Number(userId),
-        },
-        data: {
-          emailIsPublic: emailIsPublic == 'true',
-          fullnameIsPublic: fullnameIsPublic == 'true',
-          fullname: fullname,
-          bio: bio,
-        },
-      });
-      return res.json(user);
-    } else {
-      return res.status(404).json(notFound('User', userId));
-    }
-  } catch (e) {
-    return res.status(500).json(e);
-  }
+  const result = await updateSingleUserService(req.params.userId, req.body)
+  return res.status(200).json(result);
 };

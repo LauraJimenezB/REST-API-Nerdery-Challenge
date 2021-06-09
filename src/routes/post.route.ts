@@ -7,7 +7,7 @@ import {
   getPosts
 } from '../controllers/post.controller';
 import {
-  createComment,
+  createSingleComment,
   getSingleComment,
   updateSingleComment,
   deleteSingleComment,
@@ -29,7 +29,7 @@ router
 
 router
   .route('/:postId/comments')
-  .post(createComment);
+  .post(createSingleComment);
   //.get(getComments);
 
 router

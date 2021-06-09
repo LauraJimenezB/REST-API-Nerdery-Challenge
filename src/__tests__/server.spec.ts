@@ -4,8 +4,9 @@ import request from 'supertest';
 import { app } from '../server';
 import { server } from '../app';
 const prisma = new PrismaClient();
-import { newToken } from '../helpers/auth';
-import { getAllPostsService } from '../services/post.service'
+import { getAllPostsService, getSinglePostService } from '../services/post.service'
+import { getSinglePost } from '../controllers/post.controller';
+import {newToken} from '../helpers/handlerPasswordAndToken'
 
 let token: string;
 
@@ -222,6 +223,8 @@ describe("Test /api/posts endpoint", () => {
   }); */
 });
 
+//-------------------POSTS---------------------------------------------------
+
 describe.only('getAllPosts', () => {
   it('should return a json with all users', async() => {
     const allPosts = await getAllPostsService()
@@ -232,19 +235,25 @@ describe.only('getAllPosts', () => {
   })
 })
 
-describe('Test posts/ endpoint', () => {
-  test('It should get all posts', async () => {
-    app.use(express.json());
-    await request(app)
-      .get('/posts')
-      .expect(200)
-      .expect('Content-Type', /application\/json/);
-    const response = await request(app).get('/posts');
-    expect(response.body).toHaveLength(2);
-    const title = response.body.map((post: { title: string }) => post.title);
-    expect(title).toContain('POST #1');
-  });
-});
+/* type postContent = {
+  id: number
+  title: string;
+  content: string;
+}
+
+const Post: postContent = {
+  id: 1,
+  title: "asf",
+  content: "asfes"
+} */
+
+/* describe('getsinglePost', () => {
+  it('should return an specific post with a postId', async() => {
+    const post = await getSinglePostService('1', '1')
+
+  }
+  })
+}) */
 
 describe('Test users/:userId/posts/:postId endpoint', () => {
   test('It should get an specific post of a user', async () => {

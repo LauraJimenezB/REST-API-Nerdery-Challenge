@@ -1,30 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import jwt from 'jsonwebtoken';
-import { IUser, encryptPassword, validatePassword } from '../models/User';
+import { encryptPassword, validatePassword, newToken, verifyToken } from './handlerPasswordAndToken';
 
 const prisma = new PrismaClient();
-
-export interface IPayload {
-  id: number;
-  iat: number;
-  exp: number;
-}
-
-export const newToken = (user: IUser): string => {
-  return jwt.sign({ id: user.id }, process.env.TOKEN_SECRET || 'secret', {
-    expiresIn: '1d',
-  });
-};
-
-export const verifyToken = async (token: string): Promise<IPayload> => {
-  const payload = (await jwt.verify(
-    token.trim(),
-    process.env.TOKEN_SECRET || 'secret',
-  )) as IPayload;
-
-  return payload;
-};
 
 const notRepiteEmail = async (email: string): Promise<boolean> => {
   const user = await prisma.user.findUnique({
