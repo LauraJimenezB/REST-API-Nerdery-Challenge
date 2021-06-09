@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { UserDto } from '../dtos/userDto';
 
 export interface IPayload {
-  id: number;
+  id: string;
   iat: number;
   exp: number;
 }

@@ -7,7 +7,7 @@
     "lint": "tsc --noEmit && eslint src/**/*.ts --color --max-warnings=0",
     "dev": "concurrently \"tsc -w\" \"nodemon dist/app.js\"",
     "start": "node dist/app.js",
-    "test":"npx dotenv -e .env.test -- jest __tests__/server.spec.ts",
+    "test": "npx dotenv -e .env.test -- jest __tests__/server.spec.ts",
     "test-auth": "npx dotenv -e .env.test -- jest __tests__/auth.spec.ts",
     "format": "prettier --write \"src/**/*.ts\" ",
     "build": "yarn tsc",

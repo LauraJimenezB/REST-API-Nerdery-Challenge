@@ -2,7 +2,9 @@ export class UserDto {
   constructor(
     public id: number,
     public username: string,
-    public email: string
+    public email: string,
+    public password: string,
+    public token: string
   ) {}
 }
 
