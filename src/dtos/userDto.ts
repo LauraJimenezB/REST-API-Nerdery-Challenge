@@ -1,5 +1,25 @@
 import bcrypt from 'bcryptjs';
 
+// export class UserDto {
+//   id: number;
+//   username: string;
+//   email: string
+
+//   constructor(id: number, username: string, email: string) {
+//     this.id = id;
+//     this.username = username;
+//     this.email = email;
+//   }
+// }
+
+export class UserDto {
+  constructor(
+    public id: number,
+    public username: string,
+    public email: string,
+  ) { }
+}
+
 export interface IUser {
   id: number;
   username: string;

@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
-import { IUser, encryptPassword, validatePassword } from '../models/User';
+import { IUser, encryptPassword, validatePassword } from '../dtos/userDto';
 
 const prisma = new PrismaClient();
 
