@@ -5,6 +5,7 @@ import { app } from '../server';
 import { server } from '../app';
 const prisma = new PrismaClient();
 import { newToken } from '../helpers/auth';
+import { getAllPostsService } from '../services/post.service'
 
 let token: string;
 
@@ -54,7 +55,7 @@ beforeEach(async () => {
   });
 });
 
-describe('Test GET /users', () => {
+describe('Test users', () => {
   test('It should return a JSON of all users', async () => {
     const jwt = `Bearer ${token}`;
     await request(app)
@@ -221,6 +222,16 @@ describe("Test /api/posts endpoint", () => {
   }); */
 });
 
+describe.only('getAllPosts', () => {
+  it('should return a json with all users', async() => {
+    const allPosts = await getAllPostsService()
+    expect(allPosts).toHaveLength(2);
+    const title = allPosts.map((post: { title: string }) => post.title);
+    expect(title).toContain('POST #1');
+    expect(title).toContain('POST #2');
+  })
+})
+
 describe('Test posts/ endpoint', () => {
   test('It should get all posts', async () => {
     app.use(express.json());
@@ -332,7 +343,7 @@ describe("Test api/:postId/comments/:commentId endpoint", () => {
   });
 }); 
 
-afterAll( async() => {
+afterAll( async() => { 
    await prisma.$disconnect()
    server.close()
 })
