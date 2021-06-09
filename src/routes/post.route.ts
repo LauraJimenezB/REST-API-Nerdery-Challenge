@@ -1,9 +1,10 @@
 import { Router } from 'express';
 import {
   createSinglePost,
-  getSinglePost,
   updateSinglePost,
   deleteSinglePost,
+  getSinglePost,
+  getPosts
 } from '../controllers/post.controller';
 import {
   createComment,
@@ -17,14 +18,14 @@ const router: Router = Router();
 // /api/post
 router
   .route('/')
-  .post(createSinglePost);
-  //.get(getPosts)
+  .post(createSinglePost)
+  .get(getPosts);
 
 router
   .route('/:postId')
-  .get(getSinglePost)
   .patch(updateSinglePost)
-  .delete(deleteSinglePost);
+  .delete(deleteSinglePost)
+  .get(getSinglePost);
 
 router
   .route('/:postId/comments')
