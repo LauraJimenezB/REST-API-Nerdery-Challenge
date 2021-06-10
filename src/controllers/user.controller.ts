@@ -3,9 +3,11 @@ import {
   getAllUsersService,
   getSingleUserService,
   deleteSingleUserService,
-  createSingleUserService,
   updateSingleUserService
 } from '../services/user.service';
+import { plainToClass } from 'class-transformer';
+import { CreateUserDto } from '../dtos/create-user.dto';
+import { UserDto } from '../dtos/user.dto';
 
 export const getAllUsers = async (
   req: Request,
@@ -23,13 +25,17 @@ export const getSingleUser = async (
   return res.status(200).json(result);
 };
 
-export const createUser = async (
-  req: Request,
-  res: Response,
-): Promise<Response<'json'>> => {
-  const result = await createSingleUserService(req.body);
-  return res.status(200).json(result);
-}
+// export const createUser = async (
+//   req: Request,
+//   res: Response,
+// ): Promise<Response<'json'>> => {
+//   const dto = plainToClass(CreateUserDto, req.body)
+//   //console.log('dto', dto);
+  
+//   const result = await createSingleUserService(dto);  
+//   console.log('result', result);
+//   return res.status(200).json(plainToClass(UserDto, result));
+// }
 
 export const deleteUser = async (
   req: Request,

@@ -1,6 +1,9 @@
 import { PrismaClient, User } from '@prisma/client';
 import { plainToClass } from 'class-transformer';
-import { UserDto } from '../dtos/userDto';
+import { validate, validateOrReject } from 'class-validator';
+import { error } from 'console';
+import { CreateUserDto } from '../dtos/create-user.dto';
+import { UserDto } from '../dtos/user.dto';
 import { CustomError } from '../helpers/handlerError';
 import { encryptPassword } from '../helpers/handlerPasswordAndToken';
 
@@ -28,34 +31,33 @@ export async function getSingleUserService(userId: string): Promise<UserDto> {
   }
 }
 
-export async function getUserForEmailService(email: string): Promise<UserDto> {
-  try {
-    const user = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-    });
-    return plainToClass(UserDto, user);
-  } catch (e) {
-    throw new CustomError(e.message, 422);
-  }
-}
+// export async function getUserForEmailService(email: string): Promise<UserDto> {
+//   try {
+//     const user = await prisma.user.findUnique({
+//       where: {
+//         email,
+//       },
+//     });
+//     return plainToClass(UserDto, user);
+//   } catch (e) {
+//     throw new CustomError(e.message, 422);
+//   }
+// }
 
-export async function createSingleUserService(body: User): Promise<UserDto> {
-  const encryptedPass = await encryptPassword(body.password);
-  try {
-    const user = await prisma.user.create({
-      data: {
-        username: body.username,
-        email: body.email,
-        password: encryptedPass,
-      },
-    });
-    return plainToClass(UserDto, user);
-  } catch (e) {
-    throw new CustomError(e.message, 422);
-  }
-}
+// export async function createSingleUserService(body: CreateUserDto): Promise<UserDto> {
+//   //console.log('body', body)
+//   //await body.isValid()
+//   const encryptedPass = await encryptPassword(body.password);
+  
+//   const user = prisma.user.create({
+//     data: {
+//       username: body.username,
+//       email: body.email,
+//       password: encryptedPass,
+//     },
+//   });
+//   return plainToClass(UserDto, user);
+// }
 
 export async function deleteSingleUserService(
   userId: string,

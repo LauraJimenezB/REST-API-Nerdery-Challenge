@@ -8,10 +8,12 @@ import {
 
 const router: Router = Router();
 
-// /api/user
-router.route('/').get(getAllUsers);
+// /api/users
+router
+  .route('/')
+  .get(getAllUsers)
 
-// /api/user/:id
+// /api/users/:id
 router
   .route('/:userId')
   .get(getSingleUser)

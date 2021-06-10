@@ -1,4 +1,8 @@
+import { plainToClass } from 'class-transformer';
 import { NextFunction, Request, Response } from 'express';
+import { CreateUserDto } from '../dtos/create-user.dto';
+import { SigninUserDto } from '../dtos/signin-user.dto';
+import { UserDto } from '../dtos/user.dto';
 import { 
   signUpService,
   signInService,
@@ -9,16 +13,18 @@ export const signup = async (
   req: Request,
   res: Response,
 ): Promise<Response<'json'>> => {
-  const result = await signUpService(req.body);
-  return res.status(200).json(result);
+  const dto = plainToClass(CreateUserDto,req.body )
+  const result = await signUpService(dto);
+  return res.status(200).json(plainToClass(UserDto,result));
 };
 
 export const signin = async (
   req: Request,
   res: Response,
 ): Promise<Response<'json'>> => {
-  const result = await signInService(req.body);
-  return res.status(200).json(result);
+  const dto = plainToClass(SigninUserDto,req.body)
+  const result = await signInService(dto);
+  return res.status(200).json(plainToClass(UserDto,result));
 };
 
 export const protect = async (

@@ -1,60 +1,63 @@
-import { User } from '@prisma/client';
+import { PrismaClient, User } from '@prisma/client';
 import { CustomError } from '../helpers/handlerError';
 import {
   newToken,
   validatePassword,
   verifyToken,
+  encryptPassword,
 } from '../helpers/handlerPasswordAndToken';
 import { plainToClass } from 'class-transformer';
-import {
-  createSingleUserService,
-  getUserForEmailService,
-  getSingleUserService,
-} from './user.service';
-import { UserDto } from '../dtos/userDto';
+import { getSingleUserService } from './user.service';
+import { UserDto } from '../dtos/user.dto';
+import { CreateUserDto } from '../dtos/create-user.dto';
+import { SigninUserDto } from '../dtos/signin-user.dto';
 
-export async function signUpService(body: User): Promise<UserDto> {
-  if (!body.email || !body.password) {
-    throw new CustomError('Email and password required', 400);
-  }
+const prisma = new PrismaClient();
 
-  try {
-    const user = await createSingleUserService(body);
-    const token = newToken(user);
-    return plainToClass(UserDto, token);
-  } catch (e) {
-    throw new CustomError(e.message, 422);
-  }
+export async function signUpService(body: CreateUserDto): Promise<UserDto> {
+  await body.isValid();
+  const encryptedPass = await encryptPassword(body.password);
+  const user = await prisma.user.create({
+    data: {
+      username: body.username,
+      email: body.email,
+      password: encryptedPass,
+    },
+  });
+  const token = newToken(user);
+  const newUser = { ...user, token };
+  return Promise.resolve(newUser);
 }
 
-export async function signInService(body: User): Promise<UserDto> {
-  if (!body.email || !body.password) {
-    throw new CustomError('Email and password required', 400);
-  }
+export async function signInService(body: SigninUserDto): Promise<UserDto> {
+  await body.isValid();
 
-  try {
-    const user = await getUserForEmailService(body.email);
-    const isPasswordMatching = await validatePassword(
-      body.password,
-      user.password,
-    );
+  const user = await prisma.user.findUnique({
+    where: {
+      email: body.email,
+    },
+  });
 
-    if (isPasswordMatching) {
-      const token = newToken(user);
-      return plainToClass(UserDto, token);
-    } else {
-      throw new CustomError('Invalid password', 400);
-    }
-  } catch (e) {
-    throw new CustomError(e.message, 422);
-  }
+  if(!user ) throw new CustomError('Not found user', 404);
+
+  const isPasswordMatching = await validatePassword(
+    body.password,
+    user.password,
+  );
+
+  if (!isPasswordMatching) throw new CustomError('Invalid password', 400);
+  
+  const token = newToken(user);
+  const newUser = { ...user, token };
+  return Promise.resolve(newUser);
+ 
 }
 
 export async function protectService(
-  authorization: string | undefined
+  authorization: string | undefined,
 ): Promise<UserDto> {
-  console.log('auth', authorization)
-  if (!authorization) {
+  //console.log('auth', authorization)
+  if (!authorization && authorization === undefined) {
     throw new CustomError('No authorization', 401);
   }
 
