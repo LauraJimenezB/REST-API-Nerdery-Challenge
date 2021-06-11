@@ -1,23 +1,12 @@
 //import { PrismaClient } from '@prisma/client';
-<<<<<<< HEAD
 import express, { Application, NextFunction, Response, Request } from 'express';
 import morgan from 'morgan';
-import { signin, signup, protect } from './helpers/auth';
+import { signin, signup, protect } from './controllers/auth.controller';
 import { router as userRouter } from './routes/user.route';
 import { router as postRouter } from './routes/post.route';
 import { router as commentRouter } from './routes/comment.route';
 import { getAllPosts } from './controllers/post.controller';
 import { getAllComments } from './controllers/comment.controller';
-=======
-import express, { Application, NextFunction, Request, Response } from 'express'
-import morgan from 'morgan'
-import { signup, signin, protect } from './controllers/auth.controller'
-import { router as userRouter } from './routes/user.route'
-import { router as postRouter } from './routes/post.route'
-import { router as commentRouter } from './routes/comment.route'
-import { getAllPosts } from './controllers/post.controller'
-import { getAllComments } from './controllers/comment.controller'
->>>>>>> 2d2bdb459a1ad2071e65919727fc7f6bf0af0b4a
 import asyncHandler from 'express-async-handler';
 import { HttpError } from 'http-errors';
 

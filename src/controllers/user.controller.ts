@@ -28,31 +28,10 @@ export const updateProfileUser = async (
   req: Request,
   res: Response,
 ): Promise<Response<'json'>> => {
-<<<<<<< HEAD
-  const result = await createSingleUserService(req.body);
-  return res.status(200).json(result);
-};
 
-export const deleteUser = async (
-  req: Request,
-  res: Response,
-): Promise<Response<'json'>> => {
-  const result = await deleteSingleUserService(req.params.userId);
-  return res.status(200).json(result);
-};
-
-export const updateUser = async (
-  req: Request,
-  res: Response,
-): Promise<Response<'json'>> => {
-  const result = await updateSingleUserService(req.params.userId, req.body);
-  return res.status(200).json(result);
-};
-=======
   const dto = plainToClass(UpdateUserDto,req.body)
   const result = await updateProfileUserService(req.params.userId, dto)
   
   return res.status(200).json(plainToClass(UpdateUserDto,result));
 }
 
->>>>>>> 2d2bdb459a1ad2071e65919727fc7f6bf0af0b4a

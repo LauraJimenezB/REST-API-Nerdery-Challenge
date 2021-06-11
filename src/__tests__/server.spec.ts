@@ -30,7 +30,7 @@ beforeEach(async () => {
   await prisma.user.deleteMany();
   await prisma.post.deleteMany();
   await prisma.comments.deleteMany();
-  const user1 = await prisma.user.create({
+  await prisma.user.create({
     data: {
       id: 1,
       username: 'example',
@@ -61,8 +61,7 @@ beforeEach(async () => {
       },
     },
   });
-  token1 = newToken(user1);
-  const user2 = await prisma.user.create({
+  await prisma.user.create({
     data: {
       id: 2,
       username: 'abc',
@@ -88,7 +87,6 @@ beforeEach(async () => {
       },
     },
   });
-  token2 = newToken(user2);
 });
 
 //-------------------POSTS---------------------------------------------------

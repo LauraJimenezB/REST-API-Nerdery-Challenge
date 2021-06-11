@@ -1,5 +1,8 @@
 import { PrismaClient, User } from '@prisma/client';
 import { UpdateUserDto } from '../dtos/update-user.dto';
+import { UserDto } from '../dtos/user.dto';
+import { plainToClass } from 'class-transformer';
+import { CustomError } from '../helpers/handlerError';
 
 const prisma = new PrismaClient();
 
@@ -39,7 +42,7 @@ export async function updateProfileUserService(
   params: UpdateUserDto,
 ): Promise<User> {
   await params.isValid();
-  console.log('params', params)
+  //console.log('params', params)
   const updateUser = await prisma.user.update({
     where: {
       id: Number(userId),
