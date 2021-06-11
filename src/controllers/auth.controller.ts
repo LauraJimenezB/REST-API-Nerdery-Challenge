@@ -7,15 +7,27 @@ import {
   signUpService,
   signInService,
   protectService,
+  confirmEmailService
 } from '../services/auth.service';
+
+export const confirmEmail = async (
+  req: Request,
+  res: Response,
+): Promise<Response<'json'>> => {
+  //const dto = plainToClass(CreateUserDto,req.body )
+  const result = await confirmEmailService(req.params.idTokenEmail);
+  //console.log('result', result);
+  
+  return res.status(200).json(plainToClass(UserDto,result));
+};
 
 export const signup = async (
   req: Request,
   res: Response,
 ): Promise<Response<'json'>> => {
   const dto = plainToClass(CreateUserDto,req.body )
-  const result = await signUpService(dto);
-  return res.status(200).json(plainToClass(UserDto,result));
+  await signUpService(dto);
+  return res.status(200).json('Please verify your email address');
 };
 
 export const signin = async (
