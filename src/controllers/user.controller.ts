@@ -28,6 +28,7 @@ export const updateProfileUser = async (
   req: Request,
   res: Response,
 ): Promise<Response<'json'>> => {
+
   const dto = plainToClass(UpdateUserDto,req.body)
   const result = await updateProfileUserService(req.params.userId, dto)
   

@@ -19,5 +19,4 @@ export class BaseDto {
 
     return true
   }
-
 }
