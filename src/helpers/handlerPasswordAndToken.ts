@@ -1,9 +1,9 @@
+import { User } from '.prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { UserDto } from '../dtos/userDto';
 
-export interface IPayload {
-  id: number;
+export type Payload = {
+  id: string;
   iat: number;
   exp: number;
 }
@@ -20,17 +20,17 @@ export async function validatePassword(
   return await bcrypt.compare(plainTextPassword, hashedPassword);
 }
 
-export const newToken = (user: UserDto): string => {
-  return jwt.sign({ id: user.id }, process.env.TOKEN_SECRET || 'secret', {
-    expiresIn: '1d',
+export const newToken = (userId: number): string => {
+  return jwt.sign({ id: userId }, process.env.TOKEN_SECRET, {
+    expiresIn: process.env.TOKEN_EXPIRES,
   });
 };
 
-export const verifyToken = async (token: string): Promise<IPayload> => {
+export const verifyToken = async (token: string): Promise<Payload> => {
   const payload = (await jwt.verify(
     token.trim(),
-    process.env.TOKEN_SECRET || 'secret',
-  )) as IPayload;
+    process.env.TOKEN_SECRET,
+  )) as Payload;
 
   return payload;
 };

@@ -1,100 +1,128 @@
 import { PrismaClient } from '@prisma/client';
-import request from 'supertest';
-import { app } from '../server';
 import {
-  newToken,
-  verifyToken,
-  IPayload,
-} from '../helpers/handlerPasswordAndToken';
+  signUpService,
+  signInService,
+  protectService,
+} from '../services/auth.service';
+import { CreateUserDto } from '../dtos/create-user.dto';
+import { server } from '../app';
+import { SigninUserDto } from '../dtos/signin-user.dto';
+import { newToken, verifyToken } from '../helpers/handlerPasswordAndToken';
 import jwt from 'jsonwebtoken';
 
-//const prisma = new PrismaClient();
+const prisma = new PrismaClient();
 
-// beforeEach( async () => {
-//   await prisma.user.deleteMany();
-// });
+let userId: number;
+let token: string;
 
-describe('Creation JWT and Authentication: ', () => {
-  describe('newToken', () => {
-    test('creates new jwt from user', () => {
-      const userModel = { id: 123, username: 'test', email: 'test@test.com' };
-      const token = newToken(userModel);
-      const user = jwt.verify(
-        token,
-        process.env.TOKEN_SECRET || 'secret',
-      ) as IPayload;
+describe('SignUp → Create new user', () => {
+  const user = new CreateUserDto();
+  user.username = 'test98';
+  user.email = 'test@test.com';
+  user.password = 'password';
 
-      expect(user.id).toEqual(userModel.id);
-    });
+  test('create new user', async () => {
+    const result = await signUpService(user);
+    expect(result).toHaveProperty('id');
+    expect(result.username).toBe('test98');
+    expect(result.email).toBe('test@test.com');
   });
 
-  describe('verifyToken', () => {
-    test('validates jwt and returns payload', async () => {
-      const id = 1234;
-      const token = jwt.sign({ id }, process.env.TOKEN_SECRET || 'secret');
-      const user = await verifyToken(token);
-
-      expect(user.id).toEqual(id);
-    });
+  test('email must be unique', async () => {
+    await expect(signUpService(user)).rejects.toThrow(
+      'This email is already registered',
+    );
   });
 
-  describe('signup', () => {
-    test('requires email and password', async () => {
-      const response = await request(app).post('/signup');
-      expect(response.status).toBe(400);
-      expect(response.body).toBe('Email and password required');
-    });
-  });
-
-  test.skip('creates user and and sends new token from user', async () => {
-    const response = await request(app)
-      .post('/signup')
-      .send({ username: 'test', email: 'test@test.com', password: 'password' });
-
-    expect(response.status).toBe(200);
-  });
-
-  test(`can't creates user without username field`, async () => {
-    const response = await request(app)
-      .post('/signup')
-      .send({ email: 'john@test.com', password: 'password' });
-
-    expect(response.status).toBe(400);
-  });
-
-  test('signup with the email already exists', async () => {
-    const response = await request(app)
-      .post('/signup')
-      .send({ username: 'test', email: 'test@test.com', password: 'password' });
-
-    expect(response.status).toBe(400);
-    expect(response.body).toBe('The email already exists');
+  test('fields must be required', async () => {
+    user.username = '';
+    user.email = '';
+    user.password = '';
+    await expect(signUpService(user)).rejects.toThrow('BadRequestError');
   });
 });
 
-describe('signin', () => {
-  test(`login with email and password and return a new token`, async () => {
-    const response = await request(app)
-      .post('/signin')
-      .send({ email: 'test@test.com', password: 'password' });
+describe('SignIn → Login user', () => {
+  const user = new SigninUserDto();
+  user.email = 'test@test.com';
+  user.password = 'password';
 
-    expect(response.status).toBe(201);
-    expect(response.body).toHaveProperty('token');
+  test('login success', async () => {
+    user.email = 'test@test.com';
+    user.password = 'password';
+    const result = await signInService(user);
+    userId = result.id;
+    expect(result).toHaveProperty('id');
+    expect(result.username).toBe('test98');
+    expect(result.email).toBe('test@test.com');
   });
 
-  test(`not sending email and password`, async () => {
-    const response = await request(app).post('/signin').send();
-
-    expect(response.status).toBe(400);
-    expect(response.body).toBe('Email and password required');
+  test('fields must be required', async () => {
+    user.email = '';
+    await expect(signInService(user)).rejects.toThrow('BadRequestError');
   });
 
-  test(`invalid password`, async () => {
-    const response = await request(app)
-      .post('/signin')
-      .send({ email: 'test@test.com', password: 'password123' });
-
-    expect(response.status).toBe(400);
-    expect(response.body).toBe('Invalid password');
+  test('not found user', async () => {
+    user.email = 'test123@test.com';
+    user.password = 'password';
+    await expect(signInService(user)).rejects.toThrow('Not found user');
   });
+
+  test('password is invalid', async () => {
+    user.email = 'test@test.com';
+    user.password = 'password123';
+    await expect(signInService(user)).rejects.toThrow('Invalid password');
+  });
+});
+
+describe('Authorization JWT', () => {
+  test('create new jwt', () => {
+    const id = 123;
+    token = newToken(id);
+    const validToken = jwt.verify(token, process.env.TOKEN_SECRET);
+
+    expect(validToken['id']).toBe(123);
+  });
+
+  test('verify token', async () => {
+    const id = 1234;
+    token = jwt.sign({ id }, process.env.TOKEN_SECRET);
+    const validToken = await verifyToken(token);
+
+    expect(validToken.id).toBe(id);
+  });
+});
+
+describe('Midleware protect routes → Verified authorization', () => {
+  let authorization = '';
+
+  test('authorization must be required', async () => {
+    await expect(protectService(authorization)).rejects.toThrow(
+      'Login credentials are required to access',
+    );
+  });
+
+  test('the user is not found by send id token', async () => {
+    authorization = `Bearer ${token}`;
+
+    await expect(protectService(authorization)).rejects.toThrow(
+      'Not found user',
+    );
+  });
+
+  test('return user data', async () => {
+    token = newToken(userId);
+    authorization = `Bearer ${token}`;
+
+    const result = await protectService(authorization);
+    expect(result.id).toBe(userId);
+    expect(result.username).toBe('test98');
+    expect(result.email).toBe('test@test.com');
+  });
+});
+
+afterAll(async () => {
+  await prisma.user.deleteMany();
+  await prisma.$disconnect();
+  server.close();
 });

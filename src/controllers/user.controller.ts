@@ -1,10 +1,11 @@
+import { plainToClass } from 'class-transformer';
 import { Request, Response } from 'express';
-import {
+import { UpdateUserDto } from '../dtos/update-user.dto';
+import { UserDto } from '../dtos/user.dto';
+import { 
   getAllUsersService,
   getSingleUserService,
-  deleteSingleUserService,
-  createSingleUserService,
-  updateSingleUserService,
+  updateProfileUserService
 } from '../services/user.service';
 
 export const getAllUsers = async (
@@ -12,7 +13,7 @@ export const getAllUsers = async (
   res: Response,
 ): Promise<Response<'json'>> => {
   const allUsers = await getAllUsersService();
-  return res.status(200).json(allUsers);
+  return res.status(200).json(plainToClass(UserDto,allUsers));
 };
 
 export const getSingleUser = async (
@@ -20,13 +21,14 @@ export const getSingleUser = async (
   res: Response,
 ): Promise<Response<'json'>> => {
   const result = await getSingleUserService(req.params.userId);
-  return res.status(200).json(result);
+  return res.status(200).json(plainToClass(UserDto,result));
 };
 
-export const createUser = async (
+export const updateProfileUser = async (
   req: Request,
   res: Response,
 ): Promise<Response<'json'>> => {
+<<<<<<< HEAD
   const result = await createSingleUserService(req.body);
   return res.status(200).json(result);
 };
@@ -46,3 +48,11 @@ export const updateUser = async (
   const result = await updateSingleUserService(req.params.userId, req.body);
   return res.status(200).json(result);
 };
+=======
+  const dto = plainToClass(UpdateUserDto,req.body)
+  const result = await updateProfileUserService(req.params.userId, dto)
+  
+  return res.status(200).json(plainToClass(UpdateUserDto,result));
+}
+
+>>>>>>> 2d2bdb459a1ad2071e65919727fc7f6bf0af0b4a
