@@ -38,10 +38,8 @@ app.get('/comments', asyncHandler(getAllComments));
 app.use('/api', asyncHandler(protect));
 
 app.use('/api/users', userRouter);
-app.use('/api/posts', asyncHandler(postRouter));
+app.use('/api/posts', postRouter);
 app.use('/api/comments', commentRouter);
 app.use(errorHandler);
-
-app.use(errorHandler)
 
 export { app };
