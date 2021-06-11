@@ -1,11 +1,15 @@
 import { Request, Response } from 'express';
+import { plainToClass } from 'class-transformer';
 import {
   getAllCommentsService,
   createCommentService,
-  updateSingleCommentService,
-  deleteSingleCommentService,
-  getSingleCommentService,
+  getCommentService,
+  updateCommentService,
+  deleteCommentService,
+  getCommentLikesService,
+  likeOrDislikeCommentService
 } from '../services/comment.service';
+import { CreateCommentDto } from '../dtos/createComment.dto';
 
 export const getAllComments = async (
   req: Request,
@@ -15,60 +19,67 @@ export const getAllComments = async (
   return res.status(200).json(allComments);
 };
 
-export const createSingleComment = async (
+export const createComment = async (
   req: Request,
   res: Response,
 ): Promise<Response<'json'>> => {
+  const commentContent = plainToClass(CreateCommentDto, req.body);
   const result = await createCommentService(
     req.body.user.id,
-    req.body,
+    commentContent,
     req.params.postId,
   );
   return res.status(200).json(result);
 };
 
-export const updateSingleComment = async (
+export const getComment = async (
   req: Request,
   res: Response,
 ): Promise<Response<'json'>> => {
-  const result = await updateSingleCommentService(
+  const  comment = await getCommentService(req.params.commentId);
+  return res.status(200).json(comment);
+};
+
+export const updateComment = async (
+  req: Request,
+  res: Response,
+): Promise<Response<'json'>> => {
+  const commentContent = plainToClass(CreateCommentDto, req.body);
+  const result = await updateCommentService(
+    req.body.user.id,
     req.params.commentId,
-    req.body,
+    commentContent,
   );
   return res.status(200).json(result);
 };
 
-export const deleteSingleComment = async (
+export const deleteComment = async (
   req: Request,
   res: Response,
 ): Promise<Response<'json'>> => {
-  const result = await deleteSingleCommentService(req.params.commentId);
+  const result = await deleteCommentService(
+    req.body.user.id,
+    req.params.commentId,
+  );
   return res.status(200).json(result);
 };
 
-export const getSingleComment = async (
+export const getCommentLikes = async (
   req: Request,
   res: Response,
 ): Promise<Response<'json'>> => {
-  const result = await getSingleCommentService(req.params.commentId);
+  const result = await getCommentLikesService(req.params.commentId);
   return res.status(200).json(result);
 };
 
-/* export const getComments = async (req: Request, res: Response): Promise<Response<"json">> => {
-    try {
-        const { postId } = req.params;
-        const postExists = await validatePostWithoutUser(postId);
-            if (postExists) {
-                const comments = await prisma.comments.findMany({
-                where: {
-                    postId: Number(postId)
-                },
-                });
-                return res.json(comments);
-            } else {
-                return res.status(404).json(notFound('Post', postId));
-            }
-    } catch (e) {
-        return res.status(500).json(e)
-    }
-} */
+export const likeOrDislikeComment = async (
+  req: Request,
+  res: Response,
+): Promise<Response<'json'>> => {
+  const result = await likeOrDislikeCommentService(
+    req.body.user.id,
+    req.params.commentId,
+    req.body.likeStatus,
+  );
+  return res.status(200).json(result);
+};

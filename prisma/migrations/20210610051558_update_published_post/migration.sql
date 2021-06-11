@@ -9,7 +9,8 @@
 ALTER TABLE "Profile" DROP CONSTRAINT "Profile_userId_fkey";
 
 -- AlterTable
-ALTER TABLE "Post" ALTER COLUMN "updatedAt" DROP NOT NULL;
+ALTER TABLE "Post" ALTER COLUMN "updatedAt" DROP NOT NULL,
+ALTER COLUMN "published" SET DEFAULT true;
 
 -- AlterTable
 ALTER TABLE "User" ADD COLUMN     "bio" VARCHAR(200),
