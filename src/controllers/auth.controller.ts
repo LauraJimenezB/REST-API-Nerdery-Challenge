@@ -15,10 +15,8 @@ export const confirmEmail = async (
   req: Request,
   res: Response,
 ): Promise<Response<'json'>> => {
-  //const dto = plainToClass(CreateUserDto,req.body )
+ 
   const result = await confirmEmailService(req.params.idTokenEmail);
-  //console.log('result', result);
-  
   return res.status(200).json(plainToClass(UserDto,result));
 };
 
@@ -46,7 +44,6 @@ export const protect = async (
   next: NextFunction
 ): Promise<void> => {
   const result = await protectService(req.headers.authorization);
-  
   req.body.user = result;
   //res.status(200).json(plainToClass(UserDto,result));
   next()
@@ -55,9 +52,9 @@ export const protect = async (
 export const signout = async(
   req: Request,
   res: Response,
-) => {
+): Promise<Response<'json'>> => {
   await signOutService(req.headers.authorization);
-  return res.status(200).json('Signout!')
+  return res.status(200).json('You have successfully logged out!')
 }
 
 

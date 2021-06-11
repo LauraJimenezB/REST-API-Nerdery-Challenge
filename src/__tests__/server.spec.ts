@@ -17,7 +17,7 @@ import {
   updateCommentService,
   deleteCommentService,
 } from '../services/comment.service';
-import { newToken } from '../helpers/handlerPasswordAndToken';
+import { newToken } from '../helpers/auth_validators';
 import { PostDto } from '../dtos/post.dto';
 import { CreatePostDto } from '../dtos/createPost.dto';
 import { CreateCommentDto } from '../dtos/createComment.dto';

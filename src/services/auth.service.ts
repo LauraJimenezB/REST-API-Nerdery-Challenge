@@ -4,21 +4,17 @@ import {
   validatePassword,
   verifyToken,
   encryptPassword,
-} from '../helpers/handlerPasswordAndToken';
+  generateEmailToken,
+  uniqueEmail,
+} from '../helpers/auth_validators';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { SigninUserDto } from '../dtos/signin-user.dto';
 import createError from 'http-errors';
 import sgMail from '@sendgrid/mail';
-import { JsonWebTokenError } from 'jsonwebtoken';
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const prisma = new PrismaClient();
-
-// Generate a random 8 digit number as the email token
-function generateEmailToken(): string {
-  return Math.floor(10000000 + Math.random() * 90000000).toString();
-}
 
 async function sendEmailToken(email: string, token: string): Promise<void> {
   const msg = {
@@ -57,16 +53,6 @@ export async function sendConfirmToken(user: CreateUserDto): Promise<void> {
   });
 
   await sendEmailToken(user.email, emailToken);
-}
-
-export async function uniqueEmail(email: string): Promise<boolean> {
-  const user = await prisma.user.findUnique({
-    where: {
-      email,
-    },
-  });
-  if (user) return false;
-  return true;
 }
 
 export async function confirmEmailService(idTokeEmail: string): Promise<User> {
@@ -177,9 +163,7 @@ export async function protectService(
 }
 
 export async function signOutService(userToken: string): Promise<void> {
-  //console.log('authorization', userToken);
   const token = userToken.split('Bearer')[1];
-  //console.log('token', token)
 
   await prisma.token.delete({
     where: {

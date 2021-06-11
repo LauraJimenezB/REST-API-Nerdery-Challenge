@@ -1,6 +1,8 @@
-import { User } from '.prisma/client';
+import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+
+const prisma = new PrismaClient();
 
 export type Payload = {
   id: string;
@@ -34,3 +36,18 @@ export const verifyToken = async (token: string): Promise<Payload> => {
 
   return payload;
 };
+
+// Generate a random 8 digit number as the email token
+export const generateEmailToken = (): string => {
+  return Math.floor(10000000 + Math.random() * 90000000).toString();
+}
+
+export async function uniqueEmail(email: string): Promise<boolean> {
+  const user = await prisma.user.findUnique({
+    where: {
+      email,
+    },
+  });
+  if (user) return false;
+  return true;
+}
