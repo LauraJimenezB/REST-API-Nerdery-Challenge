@@ -1,41 +1,34 @@
 import { Router } from 'express';
 import {
-  createSinglePost,
-  updateSinglePost,
-  deleteSinglePost,
-  getSinglePost,
-  getPosts
+  createPost,
+  updatePost,
+  deletePost,
+  postPostLikes,
 } from '../controllers/post.controller';
 import {
-  createSingleComment,
-  getSingleComment,
-  updateSingleComment,
-  deleteSingleComment,
+  createComment,
+  updateComment,
+  deleteComment,
 } from '../controllers/comment.controller';
+import asyncHandler from 'express-async-handler';
 
 const router: Router = Router();
 
 // /api/post
-router
-  .route('/')
-  .post(createSinglePost)
-  .get(getPosts);
+router.route('/').post(asyncHandler(createPost));
 
 router
   .route('/:postId')
-  .patch(updateSinglePost)
-  .delete(deleteSinglePost)
-  .get(getSinglePost);
+  .patch(asyncHandler(updatePost))
+  .delete(asyncHandler(deletePost));
 
-router
-  .route('/:postId/comments')
-  .post(createSingleComment);
-  //.get(getComments);
+router.route('/:postId/likes').post(asyncHandler(postPostLikes));
+
+router.route('/:postId/comments').post(asyncHandler(createComment));
 
 router
   .route('/:postId/comments/:commentId')
-  .get(getSingleComment)
-  .patch(updateSingleComment)
-  .delete(deleteSingleComment)
+  .patch(asyncHandler(updateComment))
+  .delete(asyncHandler(deleteComment));
 
 export { router };

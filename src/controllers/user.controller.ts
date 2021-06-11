@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
-import { 
+import {
   getAllUsersService,
   getSingleUserService,
   deleteSingleUserService,
   createSingleUserService,
-  updateSingleUserService
+  updateSingleUserService,
 } from '../services/user.service';
 
 export const getAllUsers = async (
@@ -29,7 +29,7 @@ export const createUser = async (
 ): Promise<Response<'json'>> => {
   const result = await createSingleUserService(req.body);
   return res.status(200).json(result);
-}
+};
 
 export const deleteUser = async (
   req: Request,
@@ -43,6 +43,6 @@ export const updateUser = async (
   req: Request,
   res: Response,
 ): Promise<Response<'json'>> => {
-  const result = await updateSingleUserService(req.params.userId, req.body)
+  const result = await updateSingleUserService(req.params.userId, req.body);
   return res.status(200).json(result);
 };

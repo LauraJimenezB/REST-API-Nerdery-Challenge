@@ -1,14 +1,30 @@
 import { Prisma, PrismaClient } from '@prisma/client';
+import { plainToClass } from 'class-transformer';
 import express from 'express';
 import request from 'supertest';
 import { app } from '../server';
 import { server } from '../app';
 const prisma = new PrismaClient();
-import { getAllPostsService, getSinglePostService } from '../services/post.service'
-import { getSinglePost } from '../controllers/post.controller';
-import {newToken} from '../helpers/handlerPasswordAndToken'
+import {
+  getAllPostsService,
+  createPostService,
+  updatePostService,
+  deletePostService,
+} from '../services/post.service';
+import {
+  getAllCommentsService,
+  createCommentService,
+  updateCommentService,
+  deleteCommentService,
+} from '../services/comment.service';
+import { newToken } from '../helpers/handlerPasswordAndToken';
+import { PostDto } from '../dtos/post.dto';
+import { CreatePostDto } from '../dtos/createPost.dto';
+import { CreateCommentDto } from '../dtos/createComment.dto';
+import { UpdatePostDto } from '../dtos/updatePost.dto';
 
-let token: string;
+let token1: string;
+let token2: string;
 
 beforeEach(async () => {
   await prisma.user.deleteMany();
@@ -45,315 +61,277 @@ beforeEach(async () => {
       },
     },
   });
-  token = newToken(user1);
-  await prisma.user.create({
+  token1 = newToken(user1);
+  const user2 = await prisma.user.create({
     data: {
       id: 2,
       username: 'abc',
       email: 'abc@gmail.com',
       password: 'password',
+      posts: {
+        create: [
+          {
+            id: 3,
+            title: 'POST #3',
+            content: 'Content of the first post',
+            comments: {
+              create: [
+                {
+                  id: 2,
+                  authorId: 2,
+                  content: 'Another short comment',
+                },
+              ],
+            },
+          },
+        ],
+      },
     },
   });
-});
-
-describe('Test users', () => {
-  test('It should return a JSON of all users', async () => {
-    const jwt = `Bearer ${token}`;
-    await request(app)
-      .get('/api/users')
-      .set('Authorization', jwt)
-      .set('Accept', 'application/json')
-      .expect('Content-Type', /json/)
-      .expect(200);
-  });
-
-  test('It should return 2 users', async () => {
-    const jwt = `Bearer ${token}`;
-    const response = await request(app)
-      .get('/api/users')
-      .set('Authorization', jwt);
-    expect(response.body).toHaveLength(2);
-  });
-  test("It should return an ERROR: wrong endpoint", async() => {
-    const jwt = `Bearer ${token}`
-    await request(app).get('/api/uses').expect(404).set('Authorization', jwt)
-  });
-});
-
-describe('Test GET /users/:userId', () => {
-  test('It should return the user called with the id', async () => {
-    const jwt = `Bearer ${token}`;
-    const response = await request(app)
-      .get('/api/users/1')
-      .set('Authorization', jwt);
-    expect(response.body.id).toBe(1);
-    expect(response.body.username).toBe('example');
-    expect(response.body.email).toBe('example@gmail.com');
-  });
-  test('It should return an ERROR when the user id is not found', async () => {
-    const userId = 123;
-    const jwt = `Bearer ${token}`;
-    const response = await request(app)
-      .get(`/api/users/${userId}`)
-      .set('Authorization', jwt);
-    expect(response.status).toBe(404);
-
-    expect(response.body).toEqual({
-      statusCode: 404,
-      message: `User with ID ${userId} not found`,
-      error: 'Bad Request',
-    });
-  });
-});
-
-describe('Test PATCH /users/:userId', () => {
-  test('It should return the updated user: set fullname & bio', async () => {
-    const jwt = `Bearer ${token}`;
-
-    const response = await request(app)
-      .patch('/api/users/1')
-      .set('Authorization', jwt)
-      .send({
-        fullname: 'Example Name',
-        bio: 'creative bio',
-      });
-    expect(response.body.id).toBe(1);
-    expect(response.body.fullname).toBe('Example Name');
-    expect(response.body.bio).toBe('creative bio');
-  });
-  test('It should return the updated user: set public email', async () => {
-    const jwt = `Bearer ${token}`;
-    const response = await request(app)
-      .patch('/api/users/1')
-      .set('Authorization', jwt)
-      .send({
-        emailIsPublic: 'true',
-      });
-    expect(response.body.id).toBe(1);
-    expect(response.body.emailIsPublic).toBe(true);
-  });
-  test('It should return the updated user: set public fullname', async () => {
-    const jwt = `Bearer ${token}`;
-    const response = await request(app)
-      .patch('/api/users/1')
-      .set('Authorization', jwt)
-      .send({
-        fullnameIsPublic: 'true',
-      });
-    expect(response.body.id).toBe(1);
-    expect(response.body.fullnameIsPublic).toBe(true);
-  });
-  test('It should return ERROR when userId is not found', async () => {
-    const userId = 589;
-    const jwt = `Bearer ${token}`;
-    const response = await request(app)
-      .patch(`/api/users/${userId}`)
-      .set('Authorization', jwt)
-      .send({
-        fullnameIsPublic: 'true',
-      });
-    expect(response.status).toBe(404);
-    expect(response.body).toEqual({
-      statusCode: 404,
-      message: `User with ID ${userId} not found`,
-      error: 'Bad Request',
-    });
-  });
-});
-
-describe('Test DELETE users/:id', () => {
-  test('It should return the deleted user', async () => {
-    const jwt = `Bearer ${token}`;
-    const deletedUser = await request(app)
-      .delete('/api/users/1')
-      .set('Authorization', jwt);
-    expect(deletedUser.body.id).toBe(1);
-
-    const response = await request(app)
-      .get('/api/users')
-      .set('Authorization', jwt);
-    expect(response.body).toHaveLength(1);
-  });
-  /* test("It should return ERROR: not authorized", async() => {
-    await request(app)
-    .delete('/api/users/1')
-    .expect(401)
-  }); */
-});
-
-
-describe("Test /api/posts endpoint", () => {
-  test("It should create a post with the user id", async() => {
-    const jwt = `Bearer ${token}`;
-    app.use(express.json());
-    await request(app)
-      .post('/api/posts')
-      .set('Authorization', jwt)
-      .send({
-        title: 'POST #3',
-        content: 'Content of the third post',
-      })
-      .expect(200)
-      .expect('Content-Type', /application\/json/)
-    const response = await request(app).get('/api/posts').set('Authorization', jwt)
-    expect(response.body).toHaveLength(3)
-    expect(response.body[response.body.length-1].authorId).toBe(1)
-  });
-  /* test("It should get all the posts of a user", async() => {
-    app.use(express.json())
-    const jwt = `Bearer ${token}`
-    await request(app)
-      .get('/api/posts').set('Authorization', jwt)
-      .expect(200)
-      .expect('Content-Type', /application\/json/)
-    const response = await request(app).get('/api/posts').set('Authorization', jwt)
-    expect(response.body).toHaveLength(2)
-    expect(response.body[0].authorId).toBe(1)
-    expect(response.body[1].authorId).toBe(1)
-  });  */
-  /* test('It should delete all posts of a user', async () => {
-    const jwt = `Bearer ${token}`;
-    await request(app)
-      .delete('/api/posts')
-      .set('Authorization', jwt)
-      .expect(200)
-      .expect('Content-Type', /application\/json/)
-    const response = await request(app).get('/api/posts').set('Authorization', jwt)
-    expect(response.body).toHaveLength(0)
-  }); */
+  token2 = newToken(user2);
 });
 
 //-------------------POSTS---------------------------------------------------
 
-describe.only('getAllPosts', () => {
-  it('should return a json with all users', async() => {
-    const allPosts = await getAllPostsService()
-    expect(allPosts).toHaveLength(2);
+describe('getAllPosts', () => {
+  it('should return a json with all users', async () => {
+    const allPosts = await getAllPostsService();
+    expect(allPosts).toHaveLength(3);
     const title = allPosts.map((post: { title: string }) => post.title);
     expect(title).toContain('POST #1');
     expect(title).toContain('POST #2');
-  })
-})
-
-/* type postContent = {
-  id: number
-  title: string;
-  content: string;
-}
-
-const Post: postContent = {
-  id: 1,
-  title: "asf",
-  content: "asfes"
-} */
-
-/* describe('getsinglePost', () => {
-  it('should return an specific post with a postId', async() => {
-    const post = await getSinglePostService('1', '1')
-
-  }
-  })
-}) */
-
-describe('Test users/:userId/posts/:postId endpoint', () => {
-  test('It should get an specific post of a user', async () => {
-    const jwt = `Bearer ${token}`;
-    app.use(express.json());
-    const response = await request(app)
-      .get('/api/posts/2')
-      .set('Authorization', jwt);
-    expect(response.body.title).toBe('POST #2');
+    expect(title).toContain('POST #3');
   });
-  test('It should update an specific post of a user', async () => {
-    const jwt = `Bearer ${token}`;
-    app.use(express.json());
-    const response = await request(app)
-      .patch('/api/posts/1')
-      .set('Authorization', jwt)
-      .send({
+});
+
+describe('createPost', () => {
+  it('should return a created post', async () => {
+    const post = await createPostService(
+      '2',
+      plainToClass(CreatePostDto, {
+        title: 'New post...',
+        content: 'Content of the new post',
+        published: true,
+      }),
+    );
+    expect(post.title).toBe('New post...');
+  });
+  it('should throw an error when title is empty', async () => {
+    await expect(
+      createPostService(
+        '2',
+        plainToClass(CreatePostDto, {
+          title: '',
+          content: 'Content of the new post',
+          published: true,
+        }),
+      ),
+    ).rejects.toThrow('BadRequestError');
+  });
+  it('should throw an error when content is not a string', async () => {
+    await expect(
+      createPostService(
+        '2',
+        plainToClass(CreatePostDto, {
+          title: '',
+          content: 4,
+          published: true,
+        }),
+      ),
+    ).rejects.toThrow('BadRequestError');
+  });
+});
+
+describe('updatePost', () => {
+  it('should return an updated post', async () => {
+    const post = await updatePostService(
+      '1',
+      '1',
+      plainToClass(UpdatePostDto, {
         title: 'Edited title',
         content: 'new content',
-      })
-      .expect(200)
-      .expect('Content-Type', /application\/json/);
-    expect(response.body.title).toBe('Edited title');
+      }),
+    );
+    expect(post.title).toBe('Edited title');
+    expect(post.content).toBe('new content');
   });
-  test('It should delete an specific post of a user', async () => {
-    const jwt = `Bearer ${token}`;
-    app.use(express.json());
-    const response = await request(app)
-      .delete('/api/posts/1')
-      .set('Authorization', jwt)
-      .expect(200)
-      .expect('Content-Type', /application\/json/);
-    expect(response.body.title).toBe('POST #1');
+
+  it('should throw an error when title & content are empty', async () => {
+    await expect(
+      updatePostService(
+        '1',
+        '1',
+        plainToClass(UpdatePostDto, {
+          title: '',
+          content: '',
+        }),
+      ),
+    ).rejects.toThrow('BadRequestError');
+  });
+
+  it('should throw an error when the post does not exists in the database', async () => {
+    await expect(
+      updatePostService(
+        '1',
+        '8',
+        plainToClass(UpdatePostDto, {
+          title: 'New title',
+          content: 'Content of post',
+        }),
+      ),
+    ).rejects.toThrow('Post not found');
+  });
+
+  it('should throw an error when the user tries to update a post that does not belong to them', async () => {
+    await expect(
+      updatePostService(
+        '2',
+        '1',
+        plainToClass(UpdatePostDto, {
+          title: 'New title',
+          content: 'Content of post',
+        }),
+      ),
+    ).rejects.toThrow('Not authorized');
   });
 });
 
+describe('deletePost', () => {
+  it('should return the deleted post', async () => {
+    const post = await deletePostService('1', '1');
+    expect(post.title).toBe('POST #1');
+  });
 
-describe("Test /api/posts/:postId/comments endpoint", () => {
-  /* test("It should get all the posts of a user", async() => {
-    const jwt = `Bearer ${token}`
-    app.use(express.json());
-    await request(app)
-      .get('/api/posts/2/comments')
-      .set('Authorization', jwt)
-      .expect(200)
-      .expect('Content-Type', /application\/json/)
-    const response = await request(app).get('/api/posts/2/comments').set('Authorization', jwt)
-    expect(response.body).toHaveLength(1)
-  }); */
-    test("It should create a comment with the user id & post id", async() => {
-    const jwt = `Bearer ${token}`
-    app.use(express.json());
-    await request(app)
-      .post('/api/posts/2/comments')
-      .set('Authorization', jwt)
-      .send({
-        id: 2,
-        content: "New comment"
-      })
-      .expect(200)
-      .expect('Content-Type', /application\/json/)
-    const response = await request(app).get('/api/posts/2/comments').set('Authorization', jwt)
-    expect(response.body).toBe(2)
+  it('should throw an error when the post does not exists in the database', async () => {
+    await expect(deletePostService('1', '8')).rejects.toThrow('Post not found');
+  });
+
+  it('should throw an error when the user tries to update a post that does not belong to them', async () => {
+    await expect(deletePostService('3', '1')).rejects.toThrow('Not authorized');
   });
 });
- 
-describe("Test api/:postId/comments/:commentId endpoint", () => {
-  test("It should get an specific comments of a post and user", async() => {
-    const jwt = `Bearer ${token}`
-    app.use(express.json());
-    const response = await request(app).get('/api/posts/2/comments/1').set('Authorization', jwt)
-    expect(response.body.content).toBe('Short comment')
-  });
-  test("It should update an specific comment of post and user", async() => {
-    const jwt = `Bearer ${token}`
-    app.use(express.json());
-    const response = await request(app)
-      .patch('/api/posts/2/comments/1')
-      .set('Authorization', jwt)
-      .send({
-        content: "edited comment"
-      })
-      .expect(200)
-      .expect('Content-Type', /application\/json/)
-    expect(response.body.content).toBe('edited comment')
-  });
-  test("It should delete an specific comment of a post and user", async() => {
-    const jwt = `Bearer ${token}`
-    app.use(express.json());
-    const response = await request(app)
-      .delete('/api/posts/2/comments/1')
-      .set('Authorization', jwt)
-      .expect(200)
-      .expect('Content-Type', /application\/json/)
-    expect(response.body.content).toBe('Short comment')
-  });
-}); 
 
-afterAll( async() => { 
-   await prisma.$disconnect()
-   server.close()
-})
+//-------------------------COMMENTS-------------------------------------------
 
+describe('getAllComments', () => {
+  it('should return all comments in the database', async () => {
+    const allComments = await getAllCommentsService();
+    expect(allComments).toHaveLength(2);
+    const content = allComments.map(
+      (comment: { content: string }) => comment.content,
+    );
+    expect(content).toContain('Short comment');
+    expect(content).toContain('Another short comment');
+  });
+});
+
+describe('createSingleComment', () => {
+  it('should return a created comment', async () => {
+    const comment = await createCommentService(
+      '2',
+      plainToClass(CreateCommentDto, {
+        content: 'New comment!',
+        published: true,
+      }),
+      '1',
+    );
+    expect(comment.content).toBe('New comment!');
+  });
+
+  it('should throw an error when content is empty', async () => {
+    await expect(
+      createCommentService(
+        '2',
+        plainToClass(CreateCommentDto, {
+          content: '',
+          published: true,
+        }),
+        '1',
+      ),
+    ).rejects.toThrow('BadRequestError');
+  });
+
+  it('should throw an error when published property is not boolean', async () => {
+    await expect(
+      createCommentService(
+        '2',
+        plainToClass(CreateCommentDto, {
+          content: 'new comment',
+          published: 'true',
+        }),
+        '1',
+      ),
+    ).rejects.toThrow('BadRequestError');
+  });
+});
+
+describe('updateComment', () => {
+  it('should return an updated comment', async () => {
+    const comment = await updateCommentService(
+      '1',
+      '1',
+      plainToClass(CreateCommentDto, { content: 'edited comment' }),
+    );
+    expect(comment.content).toBe('edited comment');
+  });
+
+  it('should throw an error when content is empty', async () => {
+    await expect(
+      updateCommentService(
+        '1',
+        '1',
+        plainToClass(CreateCommentDto, {
+          content: '',
+        }),
+      ),
+    ).rejects.toThrow('BadRequestError');
+  });
+
+  it('should throw an error when the comment does not exists in the database', async () => {
+    await expect(
+      updateCommentService(
+        '1',
+        '8',
+        plainToClass(CreateCommentDto, {
+          content: 'Content of post',
+        }),
+      ),
+    ).rejects.toThrow('Comment not found');
+  });
+
+  it('should throw an error when the user tries to update a comment that does not belong to them', async () => {
+    await expect(
+      updateCommentService(
+        '2',
+        '1',
+        plainToClass(CreateCommentDto, {
+          content: 'Content of post',
+        }),
+      ),
+    ).rejects.toThrow('Not authorized');
+  });
+});
+
+describe('deleteComment', () => {
+  it('should return the deleted comment', async () => {
+    const comment = await deleteCommentService('1', '1');
+    expect(comment.content).toBe('Short comment');
+  });
+
+  it('should throw an error when the comment does not exists in the database', async () => {
+    await expect(deleteCommentService('1', '8')).rejects.toThrow(
+      'Comment not found',
+    );
+  });
+
+  it('should throw an error when the user tries to delete a comment that does not belong to them', async () => {
+    await expect(deleteCommentService('2', '1')).rejects.toThrow(
+      'Not authorized',
+    );
+  });
+});
+
+afterAll(async () => {
+  await prisma.$disconnect();
+  server.close();
+});

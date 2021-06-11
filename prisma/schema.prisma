@@ -18,7 +18,7 @@ model User {
   fullnameIsPublic Boolean @default(false)
   bio           String?   @db.VarChar(200)
   comments      Comments[]
-  posts         Post[]
+  posts         Post[]  @relation("author")
 }
 
 model Post {
@@ -27,20 +27,26 @@ model Post {
   updatedAt DateTime?  @updatedAt
   title     String     @db.VarChar(100)
   content   String
-  published Boolean    @default(false)
+  published Boolean    @default(true)
   authorId  Int?
-  likeState LikeState  @default(NULL)
-  author    User?      @relation(fields: [authorId], references: [id])
+  likedBy   Int[]
+  dislikedBy   Int[] 
+  likes Int   @default(0)
+  dislikes Int   @default(0)
+  author    User?      @relation("author", fields: [authorId], references: [id])
   comments  Comments[]
 }
 
 model Comments {
   id        Int       @id @default(autoincrement())
   content   String
-  likeState LikeState @default(NULL)
   published Boolean   @default(false)
   authorId  Int?
   postId    Int?
+  likedBy   Int[]
+  dislikedBy   Int[] 
+  likes Int   @default(0)
+  dislikes Int   @default(0)
   author    User?     @relation(fields: [authorId], references: [id])
   post      Post?     @relation(fields: [postId], references: [id])
 }
@@ -48,10 +54,4 @@ model Comments {
 enum Role {
   USER
   ADMIN
-}
-
-enum LikeState {
-  LIKE
-  DISLIKE
-  NULL
 }

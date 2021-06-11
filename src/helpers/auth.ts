@@ -1,6 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { encryptPassword, validatePassword, newToken, verifyToken } from './handlerPasswordAndToken';
+import {
+  encryptPassword,
+  validatePassword,
+  newToken,
+  verifyToken,
+} from './handlerPasswordAndToken';
 
 const prisma = new PrismaClient();
 
@@ -18,9 +23,9 @@ export const signup = async (req: Request, res: Response) => {
   if (!req.body.email || !req.body.password) {
     return res.status(400).json('Email and password required');
   }
- 
+
   try {
-    if ( await notRepiteEmail(req.body.email)) {
+    if (await notRepiteEmail(req.body.email)) {
       req.body.password = await encryptPassword(req.body.password);
       const savedUser = await prisma.user.create({
         data: {
@@ -32,7 +37,6 @@ export const signup = async (req: Request, res: Response) => {
 
       const token: string = newToken(savedUser);
       return res.status(200).send({ token });
-
     } else {
       return res.status(400).json('The email already exists');
     }

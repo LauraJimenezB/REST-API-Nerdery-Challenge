@@ -1,7 +1,11 @@
 import { PrismaClient } from '@prisma/client';
 import request from 'supertest';
 import { app } from '../server';
-import { newToken, verifyToken, IPayload } from '../helpers/handlerPasswordAndToken';
+import {
+  newToken,
+  verifyToken,
+  IPayload,
+} from '../helpers/handlerPasswordAndToken';
 import jwt from 'jsonwebtoken';
 
 //const prisma = new PrismaClient();

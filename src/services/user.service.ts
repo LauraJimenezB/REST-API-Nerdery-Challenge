@@ -39,7 +39,7 @@ export async function createSingleUserService(body: User): Promise<UserDto> {
       },
     });
     return plainToClass(UserDto, user);
-  } catch(e) {
+  } catch (e) {
     throw new CustomError(e.message, 422);
   }
 }
@@ -59,7 +59,10 @@ export async function deleteSingleUserService(
   }
 }
 
-export async function updateSingleUserService(userId: string, body: User): Promise<UserDto> {
+export async function updateSingleUserService(
+  userId: string,
+  body: User,
+): Promise<UserDto> {
   try {
     const user = await prisma.user.update({
       where: {
@@ -72,8 +75,8 @@ export async function updateSingleUserService(userId: string, body: User): Promi
         bio: body.bio,
       },
     });
-    return plainToClass(UserDto, user)
-  } catch(e){
+    return plainToClass(UserDto, user);
+  } catch (e) {
     throw new CustomError(e.message, 422);
   }
 }
