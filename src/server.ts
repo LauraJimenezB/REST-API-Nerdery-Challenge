@@ -10,8 +10,6 @@ import { getAllComments } from './controllers/comment.controller'
 import asyncHandler from 'express-async-handler';
 import { HttpError } from 'http-errors';
 
-//const prisma = new PrismaClient();
-
 const app: Application = express();
 
 //middlewares

@@ -5,7 +5,6 @@ import {
   verifyToken,
   encryptPassword,
 } from '../helpers/handlerPasswordAndToken';
-import { getSingleUserService } from './user.service';
 import { UserDto } from '../dtos/user.dto';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { SigninUserDto } from '../dtos/signin-user.dto';
@@ -66,8 +65,8 @@ export async function signInService(body: SigninUserDto): Promise<User> {
 
 export async function protectService(
   authorization: string | undefined,
-): Promise<UserDto> {
-  if (!authorization && authorization === undefined && authorization === null)
+): Promise<User> {
+  if (!authorization || authorization === undefined || authorization === null)
     throw new createError(401, 'Login credentials are required to access');
   //console.log('authorization', authorization);
   const token = authorization.split('Bearer')[1];
@@ -76,10 +75,14 @@ export async function protectService(
     throw new createError(401, 'Login credentials are required to access');
 
   const payload = await verifyToken(token);
-  const user = await getSingleUserService(payload.id);
+  const user = await prisma.user.findUnique({
+    where: {
+      id: Number(payload.id),
+    },
+  });
 
   if (!user) throw new createError(404, 'Not found user');
 
-  return Promise.resolve(user);
+  return user;
   //req.body.user = user;
 }
