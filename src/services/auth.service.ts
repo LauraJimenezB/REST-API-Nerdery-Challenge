@@ -9,6 +9,9 @@ import { UserDto } from '../dtos/user.dto';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { SigninUserDto } from '../dtos/signin-user.dto';
 import createError from 'http-errors';
+import sgMail from '@sendgrid/mail';
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const prisma = new PrismaClient();
 
@@ -25,6 +28,7 @@ export async function uniqueEmail(email: string): Promise<boolean> {
 export async function signUpService(body: CreateUserDto): Promise<User> {
   await body.isValid();
   const validEmail = await uniqueEmail(body.email);
+
   if (!validEmail)
     throw new createError(400, 'This email is already registered');
   const encryptedPass = await encryptPassword(body.password);
@@ -32,11 +36,41 @@ export async function signUpService(body: CreateUserDto): Promise<User> {
     data: {
       username: body.username,
       email: body.email,
-      password: encryptedPass,
+      password: encryptedPass
     },
   });
   const token = newToken(user.id);
   const newUser = { ...user, token };
+
+  const msg = {
+    to: body.email,
+    from: 'diana@ravn.co', // Use the email address or domain you verified above
+    subject: 'Confirm email',
+    html: `localhost:3000/users/${token}/confirm`,
+  };
+
+  sgMail
+  .send(msg)
+  .then((result) => {
+    console.log(result)
+  }, error => {
+    console.error(error);
+
+    if (error.response) {
+      console.error(error.response.body)
+    }
+  });
+
+  const updatedUser = await prisma.user.update({
+    where: {
+      id: user.id,
+    },
+    data: {
+      tokenConfirm: token,
+    }
+  })
+  console.log('updatedUser', updatedUser);
+  
   return Promise.resolve(newUser);
 }
 
