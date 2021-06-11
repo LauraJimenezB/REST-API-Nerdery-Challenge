@@ -1,0 +1,8 @@
+-- AlterTable
+ALTER TABLE "Comments" ADD COLUMN     "dislikedBy" INTEGER[],
+ADD COLUMN     "dislikes" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "likedBy" INTEGER[],
+ADD COLUMN     "likes" INTEGER NOT NULL DEFAULT 0;
+
+-- AlterTable
+ALTER TABLE "Post" ADD COLUMN     "dislikes" INTEGER NOT NULL DEFAULT 0;

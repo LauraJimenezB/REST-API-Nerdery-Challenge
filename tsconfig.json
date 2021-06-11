@@ -1,14 +1,17 @@
 {
   "compilerOptions": {
+    "experimentalDecorators": true,
     "target": "es6",
     "module": "commonjs",
     "outDir": "./dist",
     "rootDir": "./src",
-    "strict": true,
+    "strict": false,
     "esModuleInterop": true,
     // "skipLibCheck": true,
     // "forceConsistentCasingInFileNames": true,
-    "removeComments": true
+    "removeComments": true,
+    "strictPropertyInitialization": false,
+    "experimentalDecorators": true
   },
   "exclude": ["node_modules"]
 }

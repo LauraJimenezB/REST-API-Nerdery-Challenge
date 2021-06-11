@@ -1,31 +1,22 @@
 import { Router } from 'express';
-import { getPosts, deletePosts, createSinglePost, getSinglePost, updateSinglePost, deleteSinglePost } from '../controllers/post.controller';
-import { getUsers, getUser, updateUser, deleteUser } from '../controllers/user.controller';
+import {
+  getAllUsers,
+  getSingleUser,
+  updateProfileUser
+} from '../controllers/user.controller';
+import asyncHandler from 'express-async-handler';
 
 const router: Router = Router();
 
-// /api/user
-router
-  .route('/')
-  .get(getUsers)
+// /api/users
+// router
+//   .route('/')
+//   .get(asyncHandler(getSingleUser))
 
-// /api/user/:id
+// /api/users/:id
 router
   .route('/:userId')
-  .get(getUser)
-  .patch(updateUser)
-  .delete(deleteUser)
+  .get(asyncHandler(getSingleUser))
+  .patch(asyncHandler(updateProfileUser))
 
-router
-  .route('/:userId/posts')
-  .get(getPosts)
-  .delete(deletePosts)
-  .post(createSinglePost)
-
-router
-  .route('/:userId/posts/:postId')
-  .get(getSinglePost)
-  .delete(deleteSinglePost)
-  .patch(updateSinglePost)
-
-export default router;
+export { router };

@@ -1,158 +1,81 @@
+import { plainToClass } from 'class-transformer';
 import { Request, Response } from 'express';
-import { PrismaClient} from '@prisma/client';
+import { CreatePostDto } from '../dtos/createPost.dto';
+import { UpdatePostDto } from '../dtos/updatePost.dto';
 import {
-  validateUser,
-  validatePost,
-  notFound,
-} from '../helpers/route_validators';
+  getAllPostsService,
+  createPostService,
+  getPostService,
+  updatePostService,
+  deletePostService,
+  getPostLikesService,
+  likeOrDislikePostService,
+} from '../services/post.service';
 
-const prisma = new PrismaClient();
+export const getAllPosts = async (
+  req: Request,
+  res: Response,
+): Promise<Response<'json'>> => {
+  const allPosts = await getAllPostsService();
+  return res.status(200).json(allPosts);
+};
 
-export const getAllPosts = async (req: Request, res: Response): Promise<Response<"json">> => {
-    try {
-        const allPosts = await prisma.post.findMany();
-        return res.send(allPosts);
-    } catch (e) {
-        return res.status(400).json(e)
-    }
-}
+export const createPost = async (
+  req: Request,
+  res: Response,
+): Promise<Response<'json'>> => {
+  const postContent = plainToClass(CreatePostDto, req.body);
+  const result = await createPostService(req.body.user.id, postContent);
+  return res.status(200).json(result);
+};
 
-export const getPosts = async (req: Request, res: Response): Promise<Response<"json">> => {
-    try {
-        const { userId } = req.params;
-        const userExists = await validateUser(userId);
-        if (userExists) {
-        const userPosts = await prisma.post.findMany({
-            where: {
-            authorId: Number(userId),
-            },
-        });
-        return res.json(userPosts);
-        } else {
-        return res.status(404).json(notFound('User', userId));
-        }
-    } catch (e) {
-        return res.status(400).json(e)
-    }
-}
+export const getPost = async (
+  req: Request,
+  res: Response,
+): Promise<Response<'json'>> => {
+  const post = await getPostService(req.params.postId);
+  return res.status(200).json(post);
+};
 
-export const deletePosts = async (req: Request, res: Response): Promise<Response<"json">> => {
-    try {
-        const { userId } = req.params;
-        const userExists = await validateUser(userId);
-        if (userExists) {
-        const posts = await prisma.post.deleteMany({
-            where: {
-            authorId: Number(userId),
-            },
-        });
-        return res.send(posts);
-        } else {
-        return res.status(404).json(notFound('User', userId));
-        }
-    } catch (e) {
-        return res.status(400).json(e)
-    }
-}
+export const updatePost = async (
+  req: Request,
+  res: Response,
+): Promise<Response<'json'>> => {
+  const postContent = plainToClass(UpdatePostDto, req.body);
+  const result = await updatePostService(
+    req.body.user.id,
+    req.params.postId,
+    postContent,
+  );
+  return res.status(200).json(result);
+};
 
-export const createSinglePost = async (req: Request, res: Response): Promise<Response<"json">> => {
-    try {
-        const { userId } = req.params
-        const { title, content,id } = req.body;
-        const userExists = await validateUser(userId)
-        if (userExists) {
-            const post = await prisma.post.create({
-            data: {
-                id,
-                author: { connect: { id: Number(userId)} },
-                title,
-                content,
-                },
-            });
-            return res.send(post);
-        } else {
-            return res.status(404).json(notFound('User', userId));
-        }
-    } catch (e) {
-        return res.status(400).json(e)
-    }
-}
+export const deletePost = async (
+  req: Request,
+  res: Response,
+): Promise<Response<'json'>> => {
+  const result = await deletePostService(req.body.user.id, req.params.postId);
+  return res.status(200).json(result);
+};
 
-export const getSinglePost = async (req: Request, res: Response): Promise<Response<"json">> => {
-    try {
-        const { userId, postId } = req.params;
-        const userExists = await validateUser(userId);
-        if (userExists) {
-        const postExists = await validatePost(userId, postId);
-        if (postExists) {
-            const post = await prisma.post.findFirst({
-            where: {
-                id: Number(postId),
-                authorId: Number(userId),
-            },
-            });
-            return res.json(post);
-        } else {
-            return res.status(404).json(notFound('Post', postId));
-        }
-        } else {
-        return res.status(404).json(notFound('User', userId));
-        }
-    } catch (e) {
-        return res.status(400).json(e)
-    }
-}
+export const getPostLikes = async (
+  req: Request,
+  res: Response,
+): Promise<Response<'json'>> => {
+  const result = await getPostLikesService(req.params.postId);
+  return res.status(200).json(result);
+};
 
-export const updateSinglePost = async (req: Request, res: Response): Promise<Response<"json">> => {
-    try {
-        const { userId, postId } = req.params;
-        const { title, content } = req.body;
-        const userExists = await validateUser(userId);
-        if (userExists) {
-        const postExists = await validatePost(userId, postId);
-        if (postExists) {
-            const post = await prisma.post.update({
-            where: {
-                id: Number(postId),
-            },
-            data: {
-                title: title,
-                content: content,
-            },
-            });
-            return res.json(post);
-        } else {
-            return res.status(404).json(notFound('Post', postId));
-        }
-        } else {
-        return res.status(404).json(notFound('User', userId));
-        }
-    } catch (e) {
-        return res.status(400).json(e)
-    }
-}
+export const likeOrDislikePost = async (
+  req: Request,
+  res: Response,
+): Promise<Response<'json'>> => {
+  const result = await likeOrDislikePostService(
+    req.body.user.id,
+    req.params.postId,
+    req.body.likeStatus,
+  );
+  return res.status(200).json(result);
+};
 
-export const deleteSinglePost = async (req: Request, res: Response): Promise<Response<"json">> => {
-    try {
-        const { userId, postId } = req.params;
-        const userExists = await validateUser(userId);
-        if (userExists) {
-        const postExists = await validatePost(userId, postId);
-        if (postExists) {
-            const post = await prisma.post.delete({
-            where: {
-                id: Number(postId),
-            },
-            });
-            return res.json(post);
-        } else {
-            return res.status(404).json(notFound('Post', postId));
-        }
-        } else {
-            return res.status(404).json(notFound('User', userId));
-        }
-    } catch (e) {
-        return res.status(400).json(e)
-    }
-}
 
