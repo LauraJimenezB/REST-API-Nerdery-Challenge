@@ -5,10 +5,11 @@ import { UpdatePostDto } from '../dtos/updatePost.dto';
 import {
   getAllPostsService,
   createPostService,
+  getPostService,
   updatePostService,
   deletePostService,
   getPostLikesService,
-  postPostLikesService,
+  likeOrDislikePostService,
 } from '../services/post.service';
 
 export const getAllPosts = async (
@@ -26,6 +27,14 @@ export const createPost = async (
   const postContent = plainToClass(CreatePostDto, req.body);
   const result = await createPostService(req.body.user.id, postContent);
   return res.status(200).json(result);
+};
+
+export const getPost = async (
+  req: Request,
+  res: Response,
+): Promise<Response<'json'>> => {
+  const post = await getPostService(req.params.postId);
+  return res.status(200).json(post);
 };
 
 export const updatePost = async (
@@ -57,11 +66,11 @@ export const getPostLikes = async (
   return res.status(200).json(result);
 };
 
-export const postPostLikes = async (
+export const likeOrDislikePost = async (
   req: Request,
   res: Response,
 ): Promise<Response<'json'>> => {
-  const result = await postPostLikesService(
+  const result = await likeOrDislikePostService(
     req.body.user.id,
     req.params.postId,
     req.body.likeStatus,
@@ -69,25 +78,4 @@ export const postPostLikes = async (
   return res.status(200).json(result);
 };
 
-//------------------------------------------------------------------------------------------
 
-/* export const getSinglePost = async (req: Request, res: Response): Promise<Response<'json'>> => {
-  const result = await getSinglePostService(req.params.postId, req.body.user.id)
-  return res.status(200).json(result)
-};
-
-export const getUserPosts = async (req: Request, res: Response): Promise<Response<'json'>> => {
-  const result = await getUserPostsService(req.body.user.id)
-  return res.status(200).json(result)
-}; */
-
-/* const getValidatePost = async (postId: string) => {
-    const result = await prisma.post.findUnique({
-      where: {
-        id: Number(postId),
-      },
-    });
-    if (result) return result;
-    else throw new Error(`${postId} not exist`);
-  };
- */

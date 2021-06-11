@@ -1,15 +1,16 @@
 import { Router } from 'express';
 import {
-  /* getUserComments,  */ postCommentLikes,
+  likeOrDislikeComment,
+  getCommentLikes
 } from '../controllers/comment.controller';
 import asyncHandler from 'express-async-handler';
 
 const router: Router = Router();
 
-// /comments
-/* router
-  .route('/').get(asyncHandler(getUserComments)); */
-
-router.route('/:commentId/likes').post(asyncHandler(postCommentLikes));
+// /api/comments/
+router
+  .route('/:commentId/likes')
+  .get(asyncHandler(getCommentLikes))
+  .post(asyncHandler(likeOrDislikeComment));
 
 export { router };

@@ -3,10 +3,11 @@ import { plainToClass } from 'class-transformer';
 import {
   getAllCommentsService,
   createCommentService,
+  getCommentService,
   updateCommentService,
   deleteCommentService,
   getCommentLikesService,
-  postCommentLikesService,
+  likeOrDislikeCommentService
 } from '../services/comment.service';
 import { CreateCommentDto } from '../dtos/createComment.dto';
 
@@ -29,6 +30,14 @@ export const createComment = async (
     req.params.postId,
   );
   return res.status(200).json(result);
+};
+
+export const getComment = async (
+  req: Request,
+  res: Response,
+): Promise<Response<'json'>> => {
+  const  comment = await getCommentService(req.params.commentId);
+  return res.status(200).json(comment);
 };
 
 export const updateComment = async (
@@ -63,11 +72,11 @@ export const getCommentLikes = async (
   return res.status(200).json(result);
 };
 
-export const postCommentLikes = async (
+export const likeOrDislikeComment = async (
   req: Request,
   res: Response,
 ): Promise<Response<'json'>> => {
-  const result = await postCommentLikesService(
+  const result = await likeOrDislikeCommentService(
     req.body.user.id,
     req.params.commentId,
     req.body.likeStatus,

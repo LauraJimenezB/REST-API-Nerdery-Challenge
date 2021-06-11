@@ -6,11 +6,7 @@ import { router as userRouter } from './routes/user.route';
 import { router as postRouter } from './routes/post.route';
 import { router as commentRouter } from './routes/comment.route';
 import { getAllPosts } from './controllers/post.controller';
-import {
-  getAllComments,
-  getCommentLikes,
-} from './controllers/comment.controller';
-import { getPostLikes, postPostLikes } from './controllers/post.controller';
+import { getAllComments } from './controllers/comment.controller';
 import asyncHandler from 'express-async-handler';
 import { HttpError } from 'http-errors';
 
@@ -41,11 +37,8 @@ app.post('/signup', signup);
 app.post('/signin', signin);
 
 app.get('/posts', asyncHandler(getAllPosts));
-app.get('/posts/:postId/likes', asyncHandler(getPostLikes));
 
 app.get('/comments', asyncHandler(getAllComments));
-
-app.get('/comments/:commentId/likes', asyncHandler(getCommentLikes));
 
 app.use('/api', asyncHandler(protect));
 

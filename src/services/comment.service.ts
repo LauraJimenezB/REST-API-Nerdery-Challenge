@@ -103,7 +103,7 @@ export async function deleteCommentService(
   }
 }
 
-export async function getSingleCommentService(
+export async function getCommentService(
   commentId: string,
 ): Promise<CommentDto> {
   try {
@@ -135,7 +135,7 @@ export async function getCommentLikesService(
   }
 }
 
-export async function postCommentLikesService(
+export async function likeOrDislikeCommentService(
   userId: string,
   commentId: string,
   likeStatus: boolean,

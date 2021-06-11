@@ -10,7 +10,7 @@ import { UpdatePostDto } from '../dtos/updatePost.dto';
 
 const prisma = new PrismaClient();
 
-//posts/
+
 export async function getAllPostsService(): Promise<PostDto[]> {
   try {
     const allPosts = await prisma.post.findMany();
@@ -22,7 +22,7 @@ export async function getAllPostsService(): Promise<PostDto[]> {
   }
 }
 
-//api/posts
+
 export async function createPostService(
   userId: string,
   postContent: CreatePostDto,
@@ -44,7 +44,20 @@ export async function createPostService(
   }
 }
 
-//api/posts/:postId
+export async function getPostService( postId: string ): Promise<PostDto> {
+  try {
+    const post = await prisma.post.findUnique({
+      where: {
+        id: Number(postId),
+      },
+    });
+    return plainToClass(PostDto, post);
+  } catch (e) {
+    throw new CustomError(e.message, 422);
+  }
+}
+
+
 export async function updatePostService(
   userId: string,
   postId: string,
@@ -113,7 +126,7 @@ export async function deletePostService(
   }
 }
 
-//posts/:postId/likes
+
 export async function getPostLikesService(postId: string): Promise<LikesDto> {
   try {
     const post = await prisma.post.findUnique({
@@ -128,7 +141,8 @@ export async function getPostLikesService(postId: string): Promise<LikesDto> {
   }
 }
 
-export async function postPostLikesService(
+
+export async function likeOrDislikePostService(
   userId: string,
   postId: string,
   likeStatus: boolean,
