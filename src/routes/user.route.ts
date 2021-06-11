@@ -2,22 +2,19 @@ import { Router } from 'express';
 import {
   getAllUsers,
   getSingleUser,
-  updateUser,
-  deleteUser,
 } from '../controllers/user.controller';
+import asyncHandler from 'express-async-handler';
 
 const router: Router = Router();
 
 // /api/users
 router
   .route('/')
-  .get(getAllUsers)
+  .get(asyncHandler(getSingleUser))
 
 // /api/users/:id
 router
   .route('/:userId')
   .get(getSingleUser)
-  .patch(updateUser)
-  .delete(deleteUser);
 
 export { router };

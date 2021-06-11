@@ -6,11 +6,26 @@
 //     public password: string
 //   ) {}
 // }
+import { Expose, Exclude } from 'class-transformer'
 
 export class UserDto {
-  id: number;
-  username: string;
-  email: string;
-  password: string;
-  token: string
+  id                :number       
+  username          :string
+  email             :string
+  @Exclude()
+  password          :string
+  role              :string
+  @Exclude()
+  emailIsPublic     :boolean
+  @Exclude()
+  fullname          :string
+  @Exclude()
+  fullnameIsPublic  :boolean
+  @Exclude()
+  bio               :string
+  @Exclude()
+  comments          :string[]
+  @Exclude()
+  posts             :string[]
+  token             :string
 }

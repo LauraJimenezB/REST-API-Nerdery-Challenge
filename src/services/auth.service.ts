@@ -1,21 +1,33 @@
 import { PrismaClient, User } from '@prisma/client';
-import { CustomError } from '../helpers/handlerError';
 import {
   newToken,
   validatePassword,
   verifyToken,
   encryptPassword,
 } from '../helpers/handlerPasswordAndToken';
-import { plainToClass } from 'class-transformer';
 import { getSingleUserService } from './user.service';
 import { UserDto } from '../dtos/user.dto';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { SigninUserDto } from '../dtos/signin-user.dto';
+import createError from 'http-errors';
 
 const prisma = new PrismaClient();
 
-export async function signUpService(body: CreateUserDto): Promise<UserDto> {
+export async function uniqueEmail(email: string): Promise<boolean> {
+  const user = await prisma.user.findUnique({
+    where: {
+      email,
+    },
+  });
+  if (user) return false;
+  return true;
+}
+
+export async function signUpService(body: CreateUserDto): Promise<User> {
   await body.isValid();
+  const validEmail = await uniqueEmail(body.email);
+  if (!validEmail)
+    throw new createError(400, 'This email is already registered');
   const encryptedPass = await encryptPassword(body.password);
   const user = await prisma.user.create({
     data: {
@@ -29,7 +41,7 @@ export async function signUpService(body: CreateUserDto): Promise<UserDto> {
   return Promise.resolve(newUser);
 }
 
-export async function signInService(body: SigninUserDto): Promise<UserDto> {
+export async function signInService(body: SigninUserDto): Promise<User> {
   await body.isValid();
 
   const user = await prisma.user.findUnique({
@@ -38,41 +50,35 @@ export async function signInService(body: SigninUserDto): Promise<UserDto> {
     },
   });
 
-  if(!user ) throw new CustomError('Not found user', 404);
+  if (!user) throw new createError(404, 'Not found user');
 
   const isPasswordMatching = await validatePassword(
     body.password,
     user.password,
   );
 
-  if (!isPasswordMatching) throw new CustomError('Invalid password', 400);
-  
+  if (!isPasswordMatching) throw new createError(400, 'Invalid password');
+
   const token = newToken(user);
   const newUser = { ...user, token };
   return Promise.resolve(newUser);
- 
 }
 
 export async function protectService(
   authorization: string | undefined,
 ): Promise<UserDto> {
-  //console.log('auth', authorization)
-  if (!authorization && authorization === undefined) {
-    throw new CustomError('No authorization', 401);
-  }
+  if (!authorization && authorization === undefined)
+    throw new createError(401, 'Login credentials are required to access');
 
   const token = authorization.split('Bearer')[1];
 
-  if (!token) {
-    throw new CustomError('No authorization', 401);
-  }
+  if (!token)
+    throw new createError(401, 'Login credentials are required to access');
 
-  try {
-    const payload = await verifyToken(token);
-    const user = await getSingleUserService(payload.id);
-    return plainToClass(UserDto, user);
-    //req.body.user = user;
-  } catch (e) {
-    throw new CustomError(e.message, 422);
-  }
+  const payload = await verifyToken(token);
+  const user = await getSingleUserService(payload.id);
+
+  return Promise.resolve(user);
+  //req.body.user = user;
 }
+
