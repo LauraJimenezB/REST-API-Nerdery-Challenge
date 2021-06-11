@@ -8,11 +8,11 @@ export class SigninUserDto extends BaseDto {
   @Expose()
   @IsNotEmpty()
   @IsEmail()
-  readonly email: string;
+  email: string;
 
   @Expose()
   @IsString()
   @Length(6, 20)
-  readonly password: string;
+  password: string;
 
 }

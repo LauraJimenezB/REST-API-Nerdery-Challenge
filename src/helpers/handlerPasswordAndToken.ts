@@ -20,8 +20,8 @@ export async function validatePassword(
   return await bcrypt.compare(plainTextPassword, hashedPassword);
 }
 
-export const newToken = (user: User): string => {
-  return jwt.sign({ id: user.id }, process.env.TOKEN_SECRET, {
+export const newToken = (userId: number): string => {
+  return jwt.sign({ id: userId }, process.env.TOKEN_SECRET, {
     expiresIn: process.env.TOKEN_EXPIRES,
   });
 };

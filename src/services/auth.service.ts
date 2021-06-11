@@ -36,7 +36,7 @@ export async function signUpService(body: CreateUserDto): Promise<User> {
       password: encryptedPass,
     },
   });
-  const token = newToken(user);
+  const token = newToken(user.id);
   const newUser = { ...user, token };
   return Promise.resolve(newUser);
 }
@@ -59,7 +59,7 @@ export async function signInService(body: SigninUserDto): Promise<User> {
 
   if (!isPasswordMatching) throw new createError(400, 'Invalid password');
 
-  const token = newToken(user);
+  const token = newToken(user.id);
   const newUser = { ...user, token };
   return Promise.resolve(newUser);
 }
@@ -67,9 +67,9 @@ export async function signInService(body: SigninUserDto): Promise<User> {
 export async function protectService(
   authorization: string | undefined,
 ): Promise<UserDto> {
-  if (!authorization && authorization === undefined)
+  if (!authorization && authorization === undefined && authorization === null)
     throw new createError(401, 'Login credentials are required to access');
-
+  //console.log('authorization', authorization);
   const token = authorization.split('Bearer')[1];
 
   if (!token)
@@ -78,7 +78,8 @@ export async function protectService(
   const payload = await verifyToken(token);
   const user = await getSingleUserService(payload.id);
 
+  if (!user) throw new createError(404, 'Not found user');
+
   return Promise.resolve(user);
   //req.body.user = user;
 }
-
