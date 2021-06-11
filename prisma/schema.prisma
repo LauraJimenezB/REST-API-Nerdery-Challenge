@@ -19,6 +19,8 @@ model User {
   bio           String?   @db.VarChar(200)
   comments      Comments[]
   posts         Post[]  @relation("author")
+  tokenConfirm  String?
+  confirmedAt   DateTime?    
 }
 
 model Post {
