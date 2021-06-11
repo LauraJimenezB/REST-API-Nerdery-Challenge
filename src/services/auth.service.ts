@@ -5,7 +5,6 @@ import {
   verifyToken,
   encryptPassword,
 } from '../helpers/handlerPasswordAndToken';
-import { UserDto } from '../dtos/user.dto';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { SigninUserDto } from '../dtos/signin-user.dto';
 import createError from 'http-errors';
@@ -36,41 +35,41 @@ export async function signUpService(body: CreateUserDto): Promise<User> {
     data: {
       username: body.username,
       email: body.email,
-      password: encryptedPass
+      password: encryptedPass,
     },
   });
   const token = newToken(user.id);
   const newUser = { ...user, token };
 
-  const msg = {
-    to: body.email,
-    from: 'diana@ravn.co', // Use the email address or domain you verified above
-    subject: 'Confirm email',
-    html: `localhost:3000/users/${token}/confirm`,
-  };
+  // const msg = {
+  //   to: body.email,
+  //   from: 'diana@ravn.co', // Use the email address or domain you verified above
+  //   subject: 'Confirm email',
+  //   html: `localhost:3000/users/${token}/confirm`,
+  // };
 
-  sgMail
-  .send(msg)
-  .then((result) => {
-    console.log(result)
-  }, error => {
-    console.error(error);
+  // sgMail
+  // .send(msg)
+  // .then((result) => {
+  //   console.log(result)
+  // }, error => {
+  //   console.error(error);
 
-    if (error.response) {
-      console.error(error.response.body)
-    }
-  });
+  //   if (error.response) {
+  //     console.error(error.response.body)
+  //   }
+  // });
 
-  const updatedUser = await prisma.user.update({
-    where: {
-      id: user.id,
-    },
-    data: {
-      tokenConfirm: token,
-    }
-  })
-  console.log('updatedUser', updatedUser);
-  
+  // const updatedUser = await prisma.user.update({
+  //   where: {
+  //     id: user.id,
+  //   },
+  //   data: {
+  //     tokenConfirm: token,
+  //   }
+  // })
+  // console.log('updatedUser', updatedUser);
+
   return Promise.resolve(newUser);
 }
 
