@@ -9,6 +9,7 @@ import { CreateUserDto } from '../dtos/create-user.dto';
 import { SigninUserDto } from '../dtos/signin-user.dto';
 import createError from 'http-errors';
 import sgMail from '@sendgrid/mail';
+import { JsonWebTokenError } from 'jsonwebtoken';
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
@@ -16,10 +17,10 @@ const prisma = new PrismaClient();
 
 // Generate a random 8 digit number as the email token
 function generateEmailToken(): string {
-  return Math.floor(10000000 + Math.random() * 90000000).toString()
+  return Math.floor(10000000 + Math.random() * 90000000).toString();
 }
 
-async function sendEmailToken(email: string, token: string): Promise<void>{
+async function sendEmailToken(email: string, token: string): Promise<void> {
   const msg = {
     to: email,
     from: 'diana@ravn.co', // Use the email address or domain you verified above
@@ -27,15 +28,14 @@ async function sendEmailToken(email: string, token: string): Promise<void>{
     html: `http://localhost:3000/users/${token}/confirm`,
   };
 
-  await sgMail.send(msg)
-
+  await sgMail.send(msg);
 }
 
 export async function sendConfirmToken(user: CreateUserDto): Promise<void> {
   const emailToken = generateEmailToken();
   const encryptedPass = await encryptPassword(user.password);
-  const tokenExpiration = new Date()
-  
+  const tokenExpiration = new Date();
+
   await prisma.token.create({
     data: {
       emailToken,
@@ -46,7 +46,7 @@ export async function sendConfirmToken(user: CreateUserDto): Promise<void> {
           create: {
             username: user.username,
             email: user.email,
-            password: encryptedPass
+            password: encryptedPass,
           },
           where: {
             email: user.email,
@@ -54,10 +54,9 @@ export async function sendConfirmToken(user: CreateUserDto): Promise<void> {
         },
       },
     },
-  })
-  
-  await sendEmailToken(user.email, emailToken)
+  });
 
+  await sendEmailToken(user.email, emailToken);
 }
 
 export async function uniqueEmail(email: string): Promise<boolean> {
@@ -71,29 +70,36 @@ export async function uniqueEmail(email: string): Promise<boolean> {
 }
 
 export async function confirmEmailService(idTokeEmail: string): Promise<User> {
-
   const isExistToken = await prisma.token.findUnique({
     where: {
-      emailToken: idTokeEmail
-    }
-  })
+      emailToken: idTokeEmail,
+    },
+  });
 
-  if(!isExistToken) throw createError(400, 'Token not exists');
+  if (!isExistToken) throw createError(400, 'Token not exists');
 
   const user = await prisma.user.update({
     where: {
-      id: isExistToken.userId
+      id: isExistToken.userId,
     },
     data: {
-      confirmedAt: new Date()
-    }
-  })
+      confirmedAt: new Date(),
+    },
+  });
 
   const token = newToken(user.id);
+  await prisma.token.create({
+    data: {
+      userToken: token,
+      type: TokenType.API,
+      expiration: new Date(),
+      userId: isExistToken.userId,
+    },
+  });
+
   const newUser = { ...user, token };
 
   return Promise.resolve(newUser);
-
 }
 
 export async function signUpService(body: CreateUserDto): Promise<void> {
@@ -101,10 +107,9 @@ export async function signUpService(body: CreateUserDto): Promise<void> {
   const validEmail = await uniqueEmail(body.email);
 
   if (!validEmail)
-  throw new createError(400, 'This email is already registered');
+    throw new createError(400, 'This email is already registered');
 
   await sendConfirmToken(body);
-  
 }
 
 export async function signInService(body: SigninUserDto): Promise<User> {
@@ -126,6 +131,14 @@ export async function signInService(body: SigninUserDto): Promise<User> {
   if (!isPasswordMatching) throw new createError(400, 'Invalid password');
 
   const token = newToken(user.id);
+  await prisma.token.create({
+    data: {
+      userToken: token,
+      type: TokenType.API,
+      expiration: new Date(),
+      userId: user.id,
+    },
+  });
   const newUser = { ...user, token };
   return Promise.resolve(newUser);
 }
@@ -141,6 +154,15 @@ export async function protectService(
   if (!token)
     throw new createError(401, 'Login credentials are required to access');
 
+  const test = await prisma.token.findMany({
+    where: {
+      userToken: token.trim(),
+    },
+  });
+
+  if (test.length === 0)
+    throw new createError(401, 'Invalid credentials: signin to account');
+
   const payload = await verifyToken(token);
   const user = await prisma.user.findUnique({
     where: {
@@ -152,4 +174,16 @@ export async function protectService(
 
   return user;
   //req.body.user = user;
+}
+
+export async function signOutService(userToken: string): Promise<void> {
+  //console.log('authorization', userToken);
+  const token = userToken.split('Bearer')[1];
+  //console.log('token', token)
+
+  await prisma.token.delete({
+    where: {
+      userToken: token.trim(),
+    },
+  });
 }

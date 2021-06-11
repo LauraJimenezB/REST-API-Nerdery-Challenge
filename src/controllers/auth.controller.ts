@@ -6,6 +6,7 @@ import { UserDto } from '../dtos/user.dto';
 import { 
   signUpService,
   signInService,
+  signOutService,
   protectService,
   confirmEmailService
 } from '../services/auth.service';
@@ -51,14 +52,13 @@ export const protect = async (
   next()
 };
 
-// export const signout = async (
-//   req: Request,
-//   res: Response,
-// ) => {
-//   // const result = await signOutService(req.headers.authorization);
-//   // req.body.user = result;
-//   req.headers.authorization = ''
-// }
+export const signout = async(
+  req: Request,
+  res: Response,
+) => {
+  await signOutService(req.headers.authorization);
+  return res.status(200).json('Signout!')
+}
 
 
 

@@ -29,6 +29,7 @@ model Token {
   updatedAt  DateTime  @updatedAt
   type       TokenType
   emailToken String?   @unique // Only used for short lived email tokens
+  userToken  String?   @unique
   valid      Boolean   @default(true)
   expiration DateTime
 

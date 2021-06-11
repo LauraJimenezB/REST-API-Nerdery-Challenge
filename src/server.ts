@@ -1,7 +1,7 @@
 //import { PrismaClient } from '@prisma/client';
 import express, { Application, NextFunction, Response, Request } from 'express';
 import morgan from 'morgan';
-import { signin, signup, protect, confirmEmail } from './controllers/auth.controller';
+import { signin, signup, protect, confirmEmail, signout } from './controllers/auth.controller';
 import { router as userRouter } from './routes/user.route';
 import { router as postRouter } from './routes/post.route';
 import { router as commentRouter } from './routes/comment.route';
@@ -42,6 +42,7 @@ app.use('/api', asyncHandler(protect));
 app.use('/api/users', userRouter);
 app.use('/api/posts', postRouter);
 app.use('/api/comments', commentRouter);
+app.post('/api/signout', asyncHandler(signout));
 app.use(errorHandler);
 
 export { app };
