@@ -16,6 +16,8 @@ export class UserDto {
   password          :string
   role              :string
   @Exclude()
+  confirmedAt       : Date
+  @Exclude()
   emailIsPublic     :boolean
   @Exclude()
   fullname          :string
