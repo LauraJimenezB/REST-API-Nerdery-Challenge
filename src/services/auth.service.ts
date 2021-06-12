@@ -66,7 +66,7 @@ export async function confirmEmailService(idTokeEmail: string): Promise<User> {
   if (!validEmail)
     throw createError(400, 'This email is already registered');
   const encryptedPass = await encryptPassword(body.password);
-  const user = await prisma.user.create({
+  const user = await prisma.user.update({
     data: {
       confirmedAt: new Date(),
     },
@@ -93,7 +93,7 @@ export async function signUpService(body: CreateUserDto): Promise<void> {
   const validEmail = await uniqueEmail(body.email);
 
   if (!validEmail)
-    throw new createError(400, 'This email is already registered');
+    throw createError(400, 'This email is already registered');
 
   await sendConfirmToken(body);
 }
@@ -147,7 +147,7 @@ export async function protectService(
   });
 
   if (test.length === 0)
-    throw new createError(401, 'Invalid credentials: signin to account');
+    throw createError(401, 'Invalid credentials: signin to account');
 
   const payload = await verifyToken(token);
   const user = await prisma.user.findUnique({
