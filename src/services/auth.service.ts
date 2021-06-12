@@ -62,12 +62,11 @@ export async function confirmEmailService(idTokeEmail: string): Promise<User> {
     },
   });
 
-  if (!isExistToken) throw createError(400, 'Token not exists');
 
-  const user = await prisma.user.update({
-    where: {
-      id: isExistToken.userId,
-    },
+  if (!validEmail)
+    throw createError(400, 'This email is already registered');
+  const encryptedPass = await encryptPassword(body.password);
+  const user = await prisma.user.create({
     data: {
       confirmedAt: new Date(),
     },
@@ -82,6 +81,7 @@ export async function confirmEmailService(idTokeEmail: string): Promise<User> {
       userId: isExistToken.userId,
     },
   });
+
 
   const newUser = { ...user, token };
 
@@ -107,14 +107,14 @@ export async function signInService(body: SigninUserDto): Promise<User> {
     },
   });
 
-  if (!user) throw new createError(404, 'Not found user');
+  if (!user) throw createError(404, 'Not found user');
 
   const isPasswordMatching = await validatePassword(
     body.password,
     user.password,
   );
 
-  if (!isPasswordMatching) throw new createError(400, 'Invalid password');
+  if (!isPasswordMatching) throw createError(400, 'Invalid password');
 
   const token = newToken(user.id);
   await prisma.token.create({
@@ -133,12 +133,12 @@ export async function protectService(
   authorization: string | undefined,
 ): Promise<User> {
   if (!authorization || authorization === undefined || authorization === null)
-    throw new createError(401, 'Login credentials are required to access');
+    throw createError(401, 'Login credentials are required to access');
   //console.log('authorization', authorization);
   const token = authorization.split('Bearer')[1];
 
   if (!token)
-    throw new createError(401, 'Login credentials are required to access');
+    throw createError(401, 'Login credentials are required to access');
 
   const test = await prisma.token.findMany({
     where: {
@@ -156,7 +156,7 @@ export async function protectService(
     },
   });
 
-  if (!user) throw new createError(404, 'Not found user');
+  if (!user) throw createError(404, 'Not found user');
 
   return user;
   //req.body.user = user;

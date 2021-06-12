@@ -6,6 +6,8 @@ export class CommentDto extends BaseDto {
   content: string;
   authorId: number | null;
   @Exclude()
+  published: boolean;
+  @Exclude()
   postId: number | null;
   @Exclude()
   likedBy: number[];

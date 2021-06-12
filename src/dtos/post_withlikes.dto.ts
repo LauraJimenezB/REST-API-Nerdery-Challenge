@@ -1,7 +1,7 @@
 import { BaseDto } from './base.dto';
 import { Exclude } from 'class-transformer';
 
-export class PostDto extends BaseDto {
+export class PostWithLikesDto extends BaseDto {
   id: number;
   @Exclude()
   createdAt: Date;
@@ -13,10 +13,8 @@ export class PostDto extends BaseDto {
   published: boolean;
   @Exclude()
   authorId: number | null;
-  @Exclude()
-  likedBy: number[];
-  @Exclude()
-  dislikedBy: number[];
   likes: number;
+  likedBy: number[];
   dislikes: number;
+  dislikedBy: number[];
 }

@@ -62,7 +62,7 @@ model Post {
 model Comments {
   id        Int       @id @default(autoincrement())
   content   String
-  published Boolean   @default(false)
+  published Boolean   @default(true)
   authorId  Int?
   postId    Int?
   likedBy   Int[]

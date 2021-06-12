@@ -1,19 +1,24 @@
 import { PrismaClient } from '@prisma/client';
 import { plainToClass } from 'class-transformer';
-import { GetPostDto } from '../dtos/getPost.dto';
 import { PostDto } from '../dtos/post.dto';
 import { CustomError } from '../helpers/handlerError';
-import { CreatePostDto } from '../dtos/createPost.dto';
+import { InputPostDto } from '../dtos/inputPost';
+import { UpdatePostDto } from '../dtos/updatePost.dto';
 import { PostLikesDto } from '../dtos/postLikes.dto';
 import { LikesDto } from '../dtos/likes.dto';
-import { UpdatePostDto } from '../dtos/updatePost.dto';
+import { PostNoLikesDto } from '../dtos/post_nolikes.dto';
+import { PostWithLikesDto } from '../dtos/post_withlikes.dto';
 
 const prisma = new PrismaClient();
 
 
 export async function getAllPostsService(): Promise<PostDto[]> {
   try {
-    const allPosts = await prisma.post.findMany();
+    const allPosts = await prisma.post.findMany({
+      where:{
+        published: true,
+      }
+    });
 
     const getPosts = allPosts.map((post) => plainToClass(PostDto, post));
     return getPosts;
@@ -25,8 +30,8 @@ export async function getAllPostsService(): Promise<PostDto[]> {
 
 export async function createPostService(
   userId: string,
-  postContent: CreatePostDto,
-): Promise<PostDto> {
+  postContent: InputPostDto,
+): Promise<PostNoLikesDto> {
   await postContent.isValid();
 
   try {
@@ -38,7 +43,7 @@ export async function createPostService(
         author: { connect: { id: Number(userId) } },
       },
     });
-    return plainToClass(PostDto, post);
+    return plainToClass(PostNoLikesDto, post);
   } catch (e) {
     throw new CustomError(e.message, 422);
   }
@@ -62,7 +67,7 @@ export async function updatePostService(
   userId: string,
   postId: string,
   postContent: UpdatePostDto,
-): Promise<PostDto> {
+): Promise<PostNoLikesDto> {
   await postContent.isValid();
 
   const post = await prisma.post.findUnique({
@@ -90,7 +95,7 @@ export async function updatePostService(
         published: postContent.published,
       },
     });
-    return plainToClass(PostDto, post);
+    return plainToClass(PostNoLikesDto, post);
   } catch (e) {
     throw new CustomError(e.message, 422);
   }
@@ -99,7 +104,7 @@ export async function updatePostService(
 export async function deletePostService(
   userId: string,
   postId: string,
-): Promise<PostDto> {
+): Promise<PostNoLikesDto> {
   const post = await prisma.post.findUnique({
     where: {
       id: Number(postId),
@@ -120,14 +125,14 @@ export async function deletePostService(
         id: Number(postId),
       },
     });
-    return plainToClass(PostDto, post);
+    return plainToClass(PostNoLikesDto, post);
   } catch (e) {
     throw new CustomError(e.message, 422);
   }
 }
 
 
-export async function getPostLikesService(postId: string): Promise<LikesDto> {
+export async function getPostLikesService(postId: string): Promise<PostWithLikesDto> {
   try {
     const post = await prisma.post.findUnique({
       where: {
@@ -135,7 +140,7 @@ export async function getPostLikesService(postId: string): Promise<LikesDto> {
       },
     });
 
-    return plainToClass(LikesDto, post);
+    return plainToClass(PostWithLikesDto, post);
   } catch (e) {
     throw new CustomError(e.message, 422);
   }
@@ -146,7 +151,7 @@ export async function likeOrDislikePostService(
   userId: string,
   postId: string,
   likeStatus: boolean,
-): Promise<LikesDto> {
+): Promise<PostWithLikesDto> {
   try {
     const getPost = await prisma.post.findUnique({
       where: {
@@ -170,7 +175,7 @@ export async function likeOrDislikePostService(
       (alreadyLiked && likeStatus === true) ||
       (alreadyDisliked && likeStatus === false)
     ) {
-      return plainToClass(LikesDto, getPost);
+      return plainToClass(PostWithLikesDto, getPost);
     }
 
     let likedBy;
@@ -212,7 +217,7 @@ export async function likeOrDislikePostService(
       },
     });
 
-    return plainToClass(LikesDto, post);
+    return plainToClass(PostWithLikesDto, post);
   } catch (e) {
     throw new CustomError(e.message, 422);
   }

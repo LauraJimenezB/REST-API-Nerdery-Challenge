@@ -18,7 +18,7 @@ export async function getSingleUserService(userId: string): Promise<User> {
       id: Number(userId),
     },
   });
-  if (!user) throw new createError(404, 'Not found user');
+  if (!user) throw createError(404, 'Not found user');
   return Promise.resolve(user);
 }
 
@@ -44,13 +44,13 @@ export async function updateProfileUserService(
 ): Promise<User> {
   console.log('userId', userId);
   if (!userId || userId === undefined)
-    throw new createError(404, 'Not found user');
+    throw createError(404, 'Not found user');
   await params.isValid();
 
   const auhorProfile = await getSingleUserService(idToken);
 
   if (auhorProfile.id !== Number(userId))
-    throw new createError(
+    throw createError(
       403,
       "You don't have permission to update this profile",
     );
