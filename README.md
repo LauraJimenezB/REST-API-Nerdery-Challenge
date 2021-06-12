@@ -1,33 +1,5 @@
 # REST-API-Nerdery-Challenge
 
-<!-- TABLE OF CONTENTS -->
-<details open="open">
-  <summary><h2 style="display: inline-block">Table of Contents</h2></summary>
-  <ol>
-    <li>
-      <a href="#about-the-project">About The Project</a>
-      <ul>
-        <li><a href="#built-with">Built With</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-      </ul>
-    </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgements">Acknowledgements</a></li>
-  </ol>
-</details>
-
-
-
 ## About The Project
 
 Build a microblog. Users should be able to create an account, sign in, sign up, sign out.
@@ -153,12 +125,15 @@ This is an example of how to list things you need to use the software and how to
   * Get a single user
 
   `PATCH` /api/users/:id
-  * Update profile: bio, fullname, make email or fullname public
+  * Update profile: bio, fullname, or make email or fullname public
+  * A user can only update their own profile
   
   
 ### Posts
   `POST` /api/posts
-  * Create a post: if you want to save it as a draft `"published": false`
+  * Create a post: 
+    * if you want to save it as a draft `"published": false`, otherwise it will be set to true
+    * As a draft it cannot be seen in "allPosts"
   * Required input
   ```sh
    {
@@ -173,11 +148,13 @@ This is an example of how to list things you need to use the software and how to
   `PATCH` /api/posts/:postId
   * Update selected post: title, content, published
   * Output: updated post
+  * A user can only update their own posts
  
   
   `DELETE` /api/posts/:postId
   * Delete selected post
   * Output: deleted post
+  * A user can only delete their own posts
   
   
   `POST` /api/posts/:id/likes
@@ -203,7 +180,8 @@ This is an example of how to list things you need to use the software and how to
   `POST` /api/posts/:id/comments 
   * Create a comment for the selected post
   * Required input: only content is requires
-    * If you  want to save your comment as a draft: `"published": false`
+    * If you  want to save your comment as a draft: `"published": false`, otherwise it will be set to true
+    * As a draft it cannot be seen in "allComments"
    ```sh
    {
       "content": 
@@ -216,11 +194,13 @@ This is an example of how to list things you need to use the software and how to
   `PATCH` /api/comments/:id
   * Update selected comment: content & published
   * Output: updated comment
+  * A user can only update their own comments
  
   
   `DELETE` /api/comments/:id
   * Delete selected comment
   * Output: deletedcomment
+  * A user can only delete their own comments
   
   
   `POST` /api/comments/:id/likes
