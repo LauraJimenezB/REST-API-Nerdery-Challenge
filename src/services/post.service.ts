@@ -3,6 +3,7 @@ import { plainToClass } from 'class-transformer';
 import { PostDto } from '../dtos/post.dto';
 import { CustomError } from '../helpers/handlerError';
 import { InputPostDto } from '../dtos/inputPost';
+import { UpdatePostDto } from '../dtos/updatePost.dto';
 import { PostLikesDto } from '../dtos/postLikes.dto';
 import { LikesDto } from '../dtos/likes.dto';
 import { PostNoLikesDto } from '../dtos/post_nolikes.dto';
@@ -65,7 +66,7 @@ export async function getPostService( postId: string ): Promise<PostDto> {
 export async function updatePostService(
   userId: string,
   postId: string,
-  postContent: InputPostDto,
+  postContent: UpdatePostDto,
 ): Promise<PostNoLikesDto> {
   await postContent.isValid();
 
@@ -150,7 +151,7 @@ export async function likeOrDislikePostService(
   userId: string,
   postId: string,
   likeStatus: boolean,
-): Promise<LikesDto> {
+): Promise<PostWithLikesDto> {
   try {
     const getPost = await prisma.post.findUnique({
       where: {
@@ -174,7 +175,7 @@ export async function likeOrDislikePostService(
       (alreadyLiked && likeStatus === true) ||
       (alreadyDisliked && likeStatus === false)
     ) {
-      return plainToClass(LikesDto, getPost);
+      return plainToClass(PostWithLikesDto, getPost);
     }
 
     let likedBy;
@@ -216,7 +217,7 @@ export async function likeOrDislikePostService(
       },
     });
 
-    return plainToClass(LikesDto, post);
+    return plainToClass(PostWithLikesDto, post);
   } catch (e) {
     throw new CustomError(e.message, 422);
   }

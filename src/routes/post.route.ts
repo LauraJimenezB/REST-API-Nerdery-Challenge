@@ -3,14 +3,10 @@ import {
   createPost,
   updatePost,
   deletePost,
-  getPostLikes,
   likeOrDislikePost,
 } from '../controllers/post.controller';
 import {
-  createComment,
-  getComment,
-  updateComment,
-  deleteComment,
+  createComment
 } from '../controllers/comment.controller';
 import asyncHandler from 'express-async-handler';
 
@@ -26,16 +22,10 @@ router
 
 router
   .route('/:postId/likes')
-  .get(asyncHandler(getPostLikes))
   .post(asyncHandler(likeOrDislikePost));
 
 
 router.route('/:postId/comments').post(asyncHandler(createComment));
 
-router
-  .route('/:postId/comments/:commentId')
-  .get(asyncHandler(getComment))
-  .patch(asyncHandler(updateComment))
-  .delete(asyncHandler(deleteComment));
 
 export { router };
