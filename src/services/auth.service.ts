@@ -25,6 +25,7 @@ async function sendEmailToken(email: string, token: string): Promise<void> {
   };
 
   await sgMail.send(msg);
+  
 }
 
 export async function sendConfirmToken(user: CreateUserDto): Promise<void> {
@@ -62,11 +63,12 @@ export async function confirmEmailService(idTokeEmail: string): Promise<User> {
     },
   });
 
+  if (!isExistToken) throw createError(400, 'Token not exists');
 
-  if (!validEmail)
-    throw createError(400, 'This email is already registered');
-  const encryptedPass = await encryptPassword(body.password);
   const user = await prisma.user.update({
+    where: {
+      id: isExistToken.userId,
+    },
     data: {
       confirmedAt: new Date(),
     },
@@ -81,7 +83,6 @@ export async function confirmEmailService(idTokeEmail: string): Promise<User> {
       userId: isExistToken.userId,
     },
   });
-
 
   const newUser = { ...user, token };
 

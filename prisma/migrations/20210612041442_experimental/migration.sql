@@ -1,14 +1,8 @@
-/*
-  Warnings:
-
-  - You are about to drop the column `tokenConfirm` on the `User` table. All the data in the column will be lost.
-
-*/
 -- CreateEnum
 CREATE TYPE "TokenType" AS ENUM ('EMAIL', 'API');
 
 -- AlterTable
-ALTER TABLE "User" DROP COLUMN "tokenConfirm";
+ALTER TABLE "User" ADD COLUMN     "confirmedAt" TIMESTAMP(3);
 
 -- CreateTable
 CREATE TABLE "Token" (
