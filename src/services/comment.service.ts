@@ -1,7 +1,9 @@
 import { PrismaClient } from '@prisma/client';
 import { plainToClass } from 'class-transformer';
 import { CommentDto } from '../dtos/comment.dto';
-import { CreateCommentDto } from '../dtos/createComment.dto';
+import { CommentNoLikesDto } from '../dtos/comment_nolikes.dto';
+import { CommentWithLikesDto } from '../dtos/comment_withlikes.dto';
+import { InputCommentDto } from '../dtos/inputComment.dto';
 import { LikesDto } from '../dtos/likes.dto';
 
 import { CustomError } from '../helpers/handlerError';
@@ -10,7 +12,11 @@ const prisma = new PrismaClient();
 
 export async function getAllCommentsService(): Promise<CommentDto[]> {
   try {
-    const allComments = await prisma.comments.findMany();
+    const allComments = await prisma.comments.findMany({
+      where:{
+        published: true,
+      }
+    });
     return plainToClass(CommentDto, allComments);
   } catch (e) {
     throw new CustomError(e.message, 422);
@@ -19,9 +25,9 @@ export async function getAllCommentsService(): Promise<CommentDto[]> {
 
 export async function createCommentService(
   userId: string,
-  commentContent: CreateCommentDto,
+  commentContent: InputCommentDto,
   postId: string,
-): Promise<CommentDto> {
+): Promise<CommentNoLikesDto> {
   await commentContent.isValid();
   try {
     const comment = await prisma.comments.create({
@@ -29,9 +35,10 @@ export async function createCommentService(
         author: { connect: { id: Number(userId) } },
         content: commentContent.content,
         post: { connect: { id: Number(postId) } },
+        published: commentContent.published
       },
     });
-    return plainToClass(CommentDto, comment);
+    return plainToClass(CommentNoLikesDto, comment);
   } catch (e) {
     throw new CustomError(e.message, 422);
   }
@@ -40,8 +47,8 @@ export async function createCommentService(
 export async function updateCommentService(
   userId: string,
   commentId: string,
-  commentContent: CreateCommentDto,
-): Promise<CommentDto> {
+  commentContent: InputCommentDto,
+): Promise<CommentNoLikesDto> {
   await commentContent.isValid();
 
   const comment = await prisma.comments.findUnique({
@@ -67,7 +74,7 @@ export async function updateCommentService(
         content: commentContent.content,
       },
     });
-    return plainToClass(CommentDto, comment);
+    return plainToClass(CommentNoLikesDto, comment);
   } catch (e) {
     throw new CustomError(e.message, 422);
   }
@@ -76,7 +83,7 @@ export async function updateCommentService(
 export async function deleteCommentService(
   userId: string,
   commentId: string,
-): Promise<CommentDto> {
+): Promise<CommentNoLikesDto> {
   const comment = await prisma.comments.findUnique({
     where: {
       id: Number(commentId),
@@ -97,7 +104,7 @@ export async function deleteCommentService(
         id: Number(commentId),
       },
     });
-    return plainToClass(CommentDto, comment);
+    return plainToClass(CommentNoLikesDto, comment);
   } catch (e) {
     throw new CustomError(e.message, 422);
   }
@@ -121,7 +128,7 @@ export async function getCommentService(
 //comments/:commentId/likes
 export async function getCommentLikesService(
   commentId: string,
-): Promise<LikesDto> {
+): Promise<CommentWithLikesDto> {
   try {
     const post = await prisma.comments.findUnique({
       where: {
@@ -129,7 +136,7 @@ export async function getCommentLikesService(
       },
     });
 
-    return plainToClass(LikesDto, post);
+    return plainToClass(CommentWithLikesDto, post);
   } catch (e) {
     throw new CustomError(e.message, 422);
   }
@@ -139,7 +146,7 @@ export async function likeOrDislikeCommentService(
   userId: string,
   commentId: string,
   likeStatus: boolean,
-): Promise<LikesDto> {
+): Promise<CommentWithLikesDto> {
   try {
     const getComment = await prisma.comments.findUnique({
       where: {
@@ -163,7 +170,7 @@ export async function likeOrDislikeCommentService(
       (alreadyLiked && likeStatus === true) ||
       (alreadyDisliked && likeStatus === false)
     ) {
-      return plainToClass(LikesDto, getComment);
+      return plainToClass(CommentWithLikesDto, getComment);
     }
 
     let likedBy;
@@ -205,7 +212,7 @@ export async function likeOrDislikeCommentService(
       },
     });
 
-    return plainToClass(LikesDto, comment);
+    return plainToClass(CommentWithLikesDto, comment);
   } catch (e) {
     throw new CustomError(e.message, 422);
   }

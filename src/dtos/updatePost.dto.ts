@@ -1,7 +1,7 @@
 import { BaseDto } from './base.dto';
 import { IsOptional, IsString, Length, IsBoolean } from 'class-validator';
 
-export class UpdatePostDto extends BaseDto {
+export class InputPostDto extends BaseDto {
   public id: number;
 
   @IsOptional()
