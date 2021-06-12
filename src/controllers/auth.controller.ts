@@ -6,16 +6,27 @@ import { UserDto } from '../dtos/user.dto';
 import { 
   signUpService,
   signInService,
+  signOutService,
   protectService,
+  confirmEmailService
 } from '../services/auth.service';
+
+export const confirmEmail = async (
+  req: Request,
+  res: Response,
+): Promise<Response<'json'>> => {
+ 
+  const result = await confirmEmailService(req.params.idTokenEmail);
+  return res.status(200).json(plainToClass(UserDto,result));
+};
 
 export const signup = async (
   req: Request,
   res: Response,
 ): Promise<Response<'json'>> => {
   const dto = plainToClass(CreateUserDto,req.body )
-  const result = await signUpService(dto);
-  return res.status(200).json(plainToClass(UserDto,result));
+  await signUpService(dto);
+  return res.status(200).json('Please verify your email address');
 };
 
 export const signin = async (
@@ -33,20 +44,18 @@ export const protect = async (
   next: NextFunction
 ): Promise<void> => {
   const result = await protectService(req.headers.authorization);
-  
   req.body.user = result;
   //res.status(200).json(plainToClass(UserDto,result));
   next()
 };
 
-// export const signout = async (
-//   req: Request,
-//   res: Response,
-// ) => {
-//   // const result = await signOutService(req.headers.authorization);
-//   // req.body.user = result;
-//   req.headers.authorization = ''
-// }
+export const signout = async(
+  req: Request,
+  res: Response,
+): Promise<Response<'json'>> => {
+  await signOutService(req.headers.authorization);
+  return res.status(200).json('You have successfully logged out!')
+}
 
 
 

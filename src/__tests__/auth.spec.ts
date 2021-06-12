@@ -7,7 +7,7 @@ import {
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { server } from '../app';
 import { SigninUserDto } from '../dtos/signin-user.dto';
-import { newToken, verifyToken } from '../helpers/handlerPasswordAndToken';
+import { newToken, verifyToken } from '../helpers/auth_validators';
 import jwt from 'jsonwebtoken';
 
 const prisma = new PrismaClient();
