@@ -1,6 +1,7 @@
 import { plainToClass } from 'class-transformer';
 import { Request, Response } from 'express';
 import { InputPostDto } from '../dtos/inputPost';
+import { UpdatePostDto } from '../dtos/updatePost.dto';
 import {
   getAllPostsService,
   createPostService,
@@ -40,7 +41,7 @@ export const updatePost = async (
   req: Request,
   res: Response,
 ): Promise<Response<'json'>> => {
-  const postContent = plainToClass(InputPostDto, req.body);
+  const postContent = plainToClass(UpdatePostDto, req.body);
   const result = await updatePostService(
     req.body.user.id,
     req.params.postId,

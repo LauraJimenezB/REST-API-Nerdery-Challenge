@@ -10,6 +10,7 @@ import {
   likeOrDislikeCommentService
 } from '../services/comment.service';
 import { InputCommentDto } from '../dtos/inputComment.dto';
+import { UpdateCommentDto } from '../dtos/updateComment.dto';
 
 export const getAllComments = async (
   req: Request,
@@ -44,7 +45,7 @@ export const updateComment = async (
   req: Request,
   res: Response,
 ): Promise<Response<'json'>> => {
-  const commentContent = plainToClass(InputCommentDto, req.body);
+  const commentContent = plainToClass(UpdateCommentDto, req.body);
   const result = await updateCommentService(
     req.body.user.id,
     req.params.commentId,

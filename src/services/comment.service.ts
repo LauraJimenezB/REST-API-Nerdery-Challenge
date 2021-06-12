@@ -4,6 +4,7 @@ import { CommentDto } from '../dtos/comment.dto';
 import { CommentNoLikesDto } from '../dtos/comment_nolikes.dto';
 import { CommentWithLikesDto } from '../dtos/comment_withlikes.dto';
 import { InputCommentDto } from '../dtos/inputComment.dto';
+import { UpdateCommentDto } from '../dtos/updateComment.dto';
 import { LikesDto } from '../dtos/likes.dto';
 
 import { CustomError } from '../helpers/handlerError';
@@ -47,7 +48,7 @@ export async function createCommentService(
 export async function updateCommentService(
   userId: string,
   commentId: string,
-  commentContent: InputCommentDto,
+  commentContent: UpdateCommentDto,
 ): Promise<CommentNoLikesDto> {
   await commentContent.isValid();
 
