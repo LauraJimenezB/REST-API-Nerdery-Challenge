@@ -3,8 +3,6 @@
 ## About The Project
 
 Build a microblog. Users should be able to create an account, sign in, sign up, sign out.
-**To avoid retyping too much info. Do a search and replace with your text editor for the following:**
-`github_username`, `repo_name`, `twitter_handle`, `email`, `project_title`, `project_description`
 
 ### Technical Requirements
 * PostgreSQL
@@ -77,29 +75,61 @@ This is an example of how to list things you need to use the software and how to
   npm run test-auth
   ```
 
-
-
 ## Authentication
 
 ### Sign Up
   `POST` /signup
+  * Required input
+  ```sh
+   {
+      "username": string
+      "email":  string
+      "password": string
+   }
+   ```
   * **Response:** `{"Verify your email address"}`
 
 ### Verify email
   You will receive an email with the endpoint to verify your user account
-  `POST` /received_route
-  * **Response:** `{"token": "Verify your email address"}`
-  
-  After verification you will be able to sign in
-  
+  `POST` /users/${emailToken}/confirm
+  * Output
+  ```sh
+      {
+        "id": 9,
+        "username": "test",
+        "email": "test@gmail.com",
+        "role": "USER",
+        "confirmedAt": "2021-06-12T04:07:42.091Z",
+        "token": "userToken"
+      }
+  ```
+  * **Response:** After verification you will be able to sign in
+
 ### Sign in
   `POST` /sign in
-  Use the token generated to authenticate the bearer token
+  * Required input
+  ```sh
+   {
+      "email":  string
+      "password": string
+   }
+   ```
+  * Output
+  ```sh
+      {
+        "id": 9,
+        "username": "test",
+        "email": "test@gmail.com",
+        "role": "USER",
+        "confirmedAt": "2021-06-12T04:07:42.091Z",
+        "token": "userToken"
+      }
+  ```
 
 ### Sign Out
-  `POST` /sign out
-
-
+  `POST` /api/signout
+  You need to send the userToken in Bearer field of Insomnia or Postman
+  * **Response:** `{'You have successfully logged out!'}`
 
 ## No need of authentication
 
@@ -119,6 +149,8 @@ This is an example of how to list things you need to use the software and how to
 
 
 ## With authentication (Bearer token)
+
+Use the token generated to authenticate the bearer token
 
 ### Users
   `GET` /api/users/:id
@@ -175,8 +207,6 @@ This is an example of how to list things you need to use the software and how to
     }
    ```
    
-   
-  
   `POST` /api/posts/:id/comments 
   * Create a comment for the selected post
   * Required input: only content is requires
@@ -220,8 +250,6 @@ This is an example of how to list things you need to use the software and how to
     }
    ```
    
-   
-
 
 
 ## Team

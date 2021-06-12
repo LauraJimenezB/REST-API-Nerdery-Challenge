@@ -1,16 +1,5 @@
-/*
-  Warnings:
-
-  - You are about to drop the column `confirmedAt` on the `User` table. All the data in the column will be lost.
-  - You are about to drop the column `tokenConfirm` on the `User` table. All the data in the column will be lost.
-
-*/
 -- CreateEnum
 CREATE TYPE "TokenType" AS ENUM ('EMAIL', 'API');
-
--- AlterTable
-ALTER TABLE "User" DROP COLUMN "confirmedAt",
-DROP COLUMN "tokenConfirm";
 
 -- CreateTable
 CREATE TABLE "Token" (
@@ -19,6 +8,7 @@ CREATE TABLE "Token" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "type" "TokenType" NOT NULL,
     "emailToken" TEXT,
+    "userToken" TEXT,
     "valid" BOOLEAN NOT NULL DEFAULT true,
     "expiration" TIMESTAMP(3) NOT NULL,
     "userId" INTEGER NOT NULL,
@@ -28,6 +18,9 @@ CREATE TABLE "Token" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Token.emailToken_unique" ON "Token"("emailToken");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Token.userToken_unique" ON "Token"("userToken");
 
 -- AddForeignKey
 ALTER TABLE "Token" ADD FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
