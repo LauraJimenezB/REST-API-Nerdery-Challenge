@@ -64,7 +64,7 @@ This is an example of how to list things you need to use the software and how to
    ```sh
    npm install
    ```
-3. Change the values in env. following the keys of env.example
+3. Change the values in .env following the keys of env.example
   ```sh
   ---DATABASE
   NODE_ENV = "development"
@@ -77,9 +77,34 @@ This is an example of how to list things you need to use the software and how to
 
   SENDGRID_API_KEY = 
   ```
-4. Import .json file into your software for API testing
-  * It has been exported from Insomnia  
-  * To convert the file into another format collection you can use: https://www.apimatic.io/transformer/
+  * Do the same for .env.test if you want to have a different database for testing
+  
+  
+5. Run prisma migrations
+   ```sh
+   npm run prisma:run:migration
+   ```
+    * Run prisma migrations for the test database
+   ```sh
+   npm run migrate-dbtest
+   ```
+   
+6. Import .json file into your software for API testing
+    * It has been exported from Insomnia  
+    * To convert the file into another format collection you can use: https://www.apimatic.io/transformer/
+
+
+## For testing
+* To test posts & comments services
+  ```sh
+  npm run test
+  ```
+
+* To test users & authentication services
+  ```sh
+  npm run test-auth
+  ```
+
 
 
 ## Authentication
