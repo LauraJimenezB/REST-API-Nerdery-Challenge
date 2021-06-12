@@ -73,6 +73,7 @@ export async function updateCommentService(
       },
       data: {
         content: commentContent.content,
+        published: commentContent.published
       },
     });
     return plainToClass(CommentNoLikesDto, comment);
