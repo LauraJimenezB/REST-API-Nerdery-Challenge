@@ -19,6 +19,8 @@ model User {
   bio           String?   @db.VarChar(200)
   comments      Comments[]
   posts         Post[]  @relation("author")
+  tokenConfirm  String?
+  confirmedAt   DateTime?    
 }
 
 model Post {
@@ -40,7 +42,7 @@ model Post {
 model Comments {
   id        Int       @id @default(autoincrement())
   content   String
-  published Boolean   @default(false)
+  published Boolean   @default(true)
   authorId  Int?
   postId    Int?
   likedBy   Int[]

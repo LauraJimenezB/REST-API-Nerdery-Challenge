@@ -1,6 +1,5 @@
 import { plainToClass } from 'class-transformer';
 import { NextFunction, Request, Response } from 'express';
-import { nextTick } from 'process';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { SigninUserDto } from '../dtos/signin-user.dto';
 import { UserDto } from '../dtos/user.dto';

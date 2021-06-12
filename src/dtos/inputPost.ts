@@ -7,7 +7,7 @@ import {
   IsOptional,
 } from 'class-validator';
 
-export class CreatePostDto extends BaseDto {
+export class InputPostDto extends BaseDto {
   public id: number;
 
   @IsNotEmpty()

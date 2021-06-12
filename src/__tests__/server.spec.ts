@@ -1,8 +1,5 @@
-import { Prisma, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { plainToClass } from 'class-transformer';
-import express from 'express';
-import request from 'supertest';
-import { app } from '../server';
 import { server } from '../app';
 const prisma = new PrismaClient();
 import {
@@ -10,26 +7,26 @@ import {
   createPostService,
   updatePostService,
   deletePostService,
+  likeOrDislikePostService,
+  getPostLikesService,
 } from '../services/post.service';
 import {
   getAllCommentsService,
   createCommentService,
   updateCommentService,
   deleteCommentService,
+  getCommentLikesService,
+  likeOrDislikeCommentService,
 } from '../services/comment.service';
-import { newToken } from '../helpers/handlerPasswordAndToken';
-import { PostDto } from '../dtos/post.dto';
-import { CreatePostDto } from '../dtos/createPost.dto';
-import { CreateCommentDto } from '../dtos/createComment.dto';
-import { UpdatePostDto } from '../dtos/updatePost.dto';
+import { InputPostDto } from '../dtos/inputPost';
+import { InputCommentDto } from '../dtos/inputComment.dto';
 
-let token1: string;
-let token2: string;
 
 beforeEach(async () => {
   await prisma.user.deleteMany();
   await prisma.post.deleteMany();
   await prisma.comments.deleteMany();
+
   await prisma.user.create({
     data: {
       id: 1,
@@ -42,6 +39,10 @@ beforeEach(async () => {
             id: 1,
             title: 'POST #1',
             content: 'Content of the first post',
+            likes: 1,
+            dislikes: 2,
+            likedBy: [2],
+            dislikedBy: [3, 4]
           },
           {
             id: 2,
@@ -53,6 +54,10 @@ beforeEach(async () => {
                   id: 1,
                   authorId: 1,
                   content: 'Short comment',
+                  likes: 1,
+                  dislikes: 2,
+                  likedBy: [3],
+                  dislikedBy: [2, 4]
                 },
               ],
             },
@@ -61,6 +66,7 @@ beforeEach(async () => {
       },
     },
   });
+
   await prisma.user.create({
     data: {
       id: 2,
@@ -89,6 +95,7 @@ beforeEach(async () => {
   });
 });
 
+
 //-------------------POSTS---------------------------------------------------
 
 describe('getAllPosts', () => {
@@ -106,7 +113,7 @@ describe('createPost', () => {
   it('should return a created post', async () => {
     const post = await createPostService(
       '2',
-      plainToClass(CreatePostDto, {
+      plainToClass(InputPostDto, {
         title: 'New post...',
         content: 'Content of the new post',
         published: true,
@@ -118,7 +125,7 @@ describe('createPost', () => {
     await expect(
       createPostService(
         '2',
-        plainToClass(CreatePostDto, {
+        plainToClass(InputPostDto, {
           title: '',
           content: 'Content of the new post',
           published: true,
@@ -130,7 +137,7 @@ describe('createPost', () => {
     await expect(
       createPostService(
         '2',
-        plainToClass(CreatePostDto, {
+        plainToClass(InputPostDto, {
           title: '',
           content: 4,
           published: true,
@@ -145,7 +152,7 @@ describe('updatePost', () => {
     const post = await updatePostService(
       '1',
       '1',
-      plainToClass(UpdatePostDto, {
+      plainToClass(InputPostDto, {
         title: 'Edited title',
         content: 'new content',
       }),
@@ -159,7 +166,7 @@ describe('updatePost', () => {
       updatePostService(
         '1',
         '1',
-        plainToClass(UpdatePostDto, {
+        plainToClass(InputPostDto, {
           title: '',
           content: '',
         }),
@@ -172,7 +179,7 @@ describe('updatePost', () => {
       updatePostService(
         '1',
         '8',
-        plainToClass(UpdatePostDto, {
+        plainToClass(InputPostDto, {
           title: 'New title',
           content: 'Content of post',
         }),
@@ -185,7 +192,7 @@ describe('updatePost', () => {
       updatePostService(
         '2',
         '1',
-        plainToClass(UpdatePostDto, {
+        plainToClass(InputPostDto, {
           title: 'New title',
           content: 'Content of post',
         }),
@@ -193,6 +200,7 @@ describe('updatePost', () => {
     ).rejects.toThrow('Not authorized');
   });
 });
+
 
 describe('deletePost', () => {
   it('should return the deleted post', async () => {
@@ -206,6 +214,80 @@ describe('deletePost', () => {
 
   it('should throw an error when the user tries to update a post that does not belong to them', async () => {
     await expect(deletePostService('3', '1')).rejects.toThrow('Not authorized');
+  });
+});
+
+describe('getPostLikes', () => {
+  it('should get likes & dislikes of a post, also who liked and disliked the post (array of userIds)', async () => {
+    const post = await getPostLikesService('1');
+    expect(post.likes).toBe(1); 
+    expect(post.likedBy).toEqual([2]);
+
+    expect(post.dislikes).toBe(2);
+    expect(post.dislikedBy).toEqual([3, 4]);
+  })
+});
+
+
+describe('likeOrDislikePost', () => {
+  it('should add likes when LIKE', async () => {
+    const post = await likeOrDislikePostService('6', '1', true);
+    expect(post.likes).toBe(2); // initially 1
+    expect(post.likedBy).toHaveLength(2);
+    expect(post.likedBy).toEqual([2, 6]); // userId = 6 was added to likedBy array
+
+    //dislikes stay the same
+    expect(post.dislikes).toBe(2);
+    expect(post.dislikedBy).toHaveLength(2);
+  });
+
+  it('should add likes when DISLIKE', async () => {
+    const post = await likeOrDislikePostService('6', '1', false);
+    expect(post.dislikes).toBe(3); // initially 2
+    expect(post.dislikedBy).toHaveLength(3);
+    expect(post.dislikedBy).toEqual([3, 4, 6]); // userId = 6 was added to dislikedBy array
+
+    //likes stay the same
+    expect(post.likes).toBe(1); 
+    expect(post.likedBy).toHaveLength(1);
+  });
+
+  it('should not add likes when LIKE because the user has already liked the post', async () => {
+    const post = await likeOrDislikePostService('2', '1', true);
+    //likes & dislikes stay the same
+    expect(post.likes).toBe(1);
+    expect(post.likedBy).toHaveLength(1);
+
+    expect(post.dislikes).toBe(2);
+    expect(post.dislikedBy).toHaveLength(2); 
+  });
+
+  it('should not add dislikes when DISLIKE because the user has already disliked the post', async () => {
+    const post = await likeOrDislikePostService('3', '1', false);
+    //likes & dislikes stay the same
+    expect(post.likes).toBe(1);
+    expect(post.likedBy).toHaveLength(1);
+    
+    expect(post.dislikes).toBe(2);
+    expect(post.dislikedBy).toHaveLength(2);
+  });
+
+  it('should add likes & rest dislikes when LIKE,  if user has disliked the post before', async () => {
+    const post = await likeOrDislikePostService('3', '1', true);
+    expect(post.likes).toBe(2); // initially 1
+    expect(post.likedBy).toHaveLength(2);
+
+    expect(post.dislikes).toBe(1); // initially 2
+    expect(post.dislikedBy).toHaveLength(1);
+  });
+
+  it('should rest likes & add dislikes when DISLIKE,  if user has liked the post before', async () => {
+    const post = await likeOrDislikePostService('2', '1', false);
+    expect(post.likes).toBe(0); // initially 1
+    expect(post.likedBy).toHaveLength(0);
+
+    expect(post.dislikes).toBe(3); // initially 2
+    expect(post.dislikedBy).toHaveLength(3);
   });
 });
 
@@ -227,7 +309,7 @@ describe('createSingleComment', () => {
   it('should return a created comment', async () => {
     const comment = await createCommentService(
       '2',
-      plainToClass(CreateCommentDto, {
+      plainToClass(InputCommentDto, {
         content: 'New comment!',
         published: true,
       }),
@@ -240,7 +322,7 @@ describe('createSingleComment', () => {
     await expect(
       createCommentService(
         '2',
-        plainToClass(CreateCommentDto, {
+        plainToClass(InputCommentDto, {
           content: '',
           published: true,
         }),
@@ -253,7 +335,7 @@ describe('createSingleComment', () => {
     await expect(
       createCommentService(
         '2',
-        plainToClass(CreateCommentDto, {
+        plainToClass(InputCommentDto, {
           content: 'new comment',
           published: 'true',
         }),
@@ -268,7 +350,7 @@ describe('updateComment', () => {
     const comment = await updateCommentService(
       '1',
       '1',
-      plainToClass(CreateCommentDto, { content: 'edited comment' }),
+      plainToClass(InputCommentDto, { content: 'edited comment' }),
     );
     expect(comment.content).toBe('edited comment');
   });
@@ -278,7 +360,7 @@ describe('updateComment', () => {
       updateCommentService(
         '1',
         '1',
-        plainToClass(CreateCommentDto, {
+        plainToClass(InputCommentDto, {
           content: '',
         }),
       ),
@@ -290,7 +372,7 @@ describe('updateComment', () => {
       updateCommentService(
         '1',
         '8',
-        plainToClass(CreateCommentDto, {
+        plainToClass(InputCommentDto, {
           content: 'Content of post',
         }),
       ),
@@ -302,7 +384,7 @@ describe('updateComment', () => {
       updateCommentService(
         '2',
         '1',
-        plainToClass(CreateCommentDto, {
+        plainToClass(InputCommentDto, {
           content: 'Content of post',
         }),
       ),
@@ -326,6 +408,81 @@ describe('deleteComment', () => {
     await expect(deleteCommentService('2', '1')).rejects.toThrow(
       'Not authorized',
     );
+  });
+});
+
+
+describe('getCommentLikes', () => {
+  it('should get likes & dislikes of a comment, also who liked and disliked the comment (array of userIds)', async () => {
+    const comment = await getCommentLikesService('1');
+    expect(comment.likes).toBe(1); 
+    expect(comment.likedBy).toEqual([3]);
+
+    expect(comment.dislikes).toBe(2);
+    expect(comment.dislikedBy).toEqual([2, 4]);
+  })
+});
+
+
+describe('likeOrDislikeComment', () => {
+  it('should add likes when LIKE', async () => {
+    const comment = await likeOrDislikeCommentService('6', '1', true);
+    expect(comment.likes).toBe(2); // initially 1
+    expect(comment.likedBy).toHaveLength(2);
+    expect(comment.likedBy).toEqual([3, 6]); // userId = 6 was added to likedBy array
+
+    //dislikes stay the same
+    expect(comment.dislikes).toBe(2);
+    expect(comment.dislikedBy).toHaveLength(2);
+  });
+
+  it('should add likes when DISLIKE', async () => {
+    const comment = await likeOrDislikeCommentService('6', '1', false);
+    expect(comment.dislikes).toBe(3); // initially 2
+    expect(comment.dislikedBy).toHaveLength(3);
+    expect(comment.dislikedBy).toEqual([2, 4, 6]); // userId = 6 was added to dislikedBy array
+
+    //likes stay the same
+    expect(comment.likes).toBe(1); 
+    expect(comment.likedBy).toHaveLength(1);
+  });
+
+  it('should not add likes when LIKE, if the user has already liked the comment', async () => {
+    const comment = await likeOrDislikeCommentService('3', '1', true);
+    //likes & dislikes stay the same
+    expect(comment.likes).toBe(1);
+    expect(comment.likedBy).toHaveLength(1);
+
+    expect(comment.dislikes).toBe(2);
+    expect(comment.dislikedBy).toHaveLength(2); 
+  });
+
+  it('should not add dislikes when DISLIKE, if the user has already disliked the comment', async () => {
+    const comment = await likeOrDislikeCommentService('2', '1', false);
+    //likes & dislikes stay the same
+    expect(comment.likes).toBe(1);
+    expect(comment.likedBy).toHaveLength(1);
+    
+    expect(comment.dislikes).toBe(2);
+    expect(comment.dislikedBy).toHaveLength(2);
+  });
+
+  it('should add likes & rest dislikes when LIKE,  if user has disliked the comment before', async () => {
+    const comment = await likeOrDislikeCommentService('2', '1', true);
+    expect(comment.likes).toBe(2); // initially 1
+    expect(comment.likedBy).toHaveLength(2);
+
+    expect(comment.dislikes).toBe(1); // initially 2
+    expect(comment.dislikedBy).toHaveLength(1);
+  });
+
+  it('should rest likes & add dislikes when DISLIKE,  if user has liked the comment before', async () => {
+    const comment = await likeOrDislikeCommentService('3', '1', false);
+    expect(comment.likes).toBe(0); // initially 1
+    expect(comment.likedBy).toHaveLength(0);
+
+    expect(comment.dislikes).toBe(3); // initially 2
+    expect(comment.dislikedBy).toHaveLength(3);
   });
 });
 

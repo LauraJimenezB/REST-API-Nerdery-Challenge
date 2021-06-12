@@ -9,7 +9,7 @@ import {
   getCommentLikesService,
   likeOrDislikeCommentService
 } from '../services/comment.service';
-import { CreateCommentDto } from '../dtos/createComment.dto';
+import { InputCommentDto } from '../dtos/inputComment.dto';
 
 export const getAllComments = async (
   req: Request,
@@ -23,7 +23,7 @@ export const createComment = async (
   req: Request,
   res: Response,
 ): Promise<Response<'json'>> => {
-  const commentContent = plainToClass(CreateCommentDto, req.body);
+  const commentContent = plainToClass(InputCommentDto, req.body);
   const result = await createCommentService(
     req.body.user.id,
     commentContent,
@@ -44,7 +44,7 @@ export const updateComment = async (
   req: Request,
   res: Response,
 ): Promise<Response<'json'>> => {
-  const commentContent = plainToClass(CreateCommentDto, req.body);
+  const commentContent = plainToClass(InputCommentDto, req.body);
   const result = await updateCommentService(
     req.body.user.id,
     req.params.commentId,
