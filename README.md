@@ -246,8 +246,8 @@ This is an example of how to list things you need to use the software and how to
 
 ## Team
 
-Laura Jimenez - https://github.com/LauraJimenezB/REST-API-Nerdery-Challenge
-Diana Ordoñez - https://github.com/DianaSanchezOrdonez/REST-API-Nerdery-Challenge
+* Laura Jimenez - https://github.com/LauraJimenezB/REST-API-Nerdery-Challenge
+* Diana Ordoñez - https://github.com/DianaSanchezOrdonez/REST-API-Nerdery-Challenge
 
 
 
